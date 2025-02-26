@@ -650,6 +650,76 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1745229057}
   m_SourcePrefab: {fileID: 100100000, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
+--- !u!1 &723252305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 723252307}
+  - component: {fileID: 723252306}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &723252306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 723252305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36bc0bdd915c6004ebf9406ad939127f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  arcweaveUI: {fileID: 1320544267}
+  playerController: {fileID: 289867024}
+  cameraController: {fileID: 330585548}
+--- !u!4 &723252307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 723252305}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &766655643 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+  m_PrefabInstance: {fileID: 2129400141}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &766655644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 766655643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8429c82fe028dc64fa02a186002bd340, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  triggerDistance: 3
+  interactionKey: 101
+  arcweavePlayer: {fileID: 1168690309}
+  specificBoardName: Wanda Dialogue
+  dialogueEndTag: dialogue_end
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -843,8 +913,8 @@ MonoBehaviour:
   triggerDistance: 3
   interactionKey: 101
   arcweavePlayer: {fileID: 1168690309}
-  dialoguePanel: {fileID: 1320544267}
   specificBoardName: Healer Dialogue
+  dialogueEndTag: dialogue_end
 --- !u!1 &1552164129
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,7 +1098,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3.5368, y: 3.5368, z: 3.5368}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1053,8 +1123,8 @@ MonoBehaviour:
   triggerDistance: 3
   interactionKey: 101
   arcweavePlayer: {fileID: 0}
-  dialoguePanel: {fileID: 0}
   specificBoardName: 
+  dialogueEndTag: dialogue_end
 --- !u!1 &1938594670
 GameObject:
   m_ObjectHideFlags: 0
@@ -1086,6 +1156,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 289867027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2129400141
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.8469696
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.363535
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      propertyPath: m_Name
+      value: Wanda Elandor
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 766655644}
+  m_SourcePrefab: {fileID: 100100000, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1099,3 +1229,5 @@ SceneRoots:
   - {fileID: 1168690310}
   - {fileID: 1552164132}
   - {fileID: 469049795}
+  - {fileID: 723252307}
+  - {fileID: 2129400141}

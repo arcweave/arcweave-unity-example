@@ -4,30 +4,51 @@ using System.Linq;
 
 public class DialogueTrigger : MonoBehaviour
 {
+    [Header("Interaction Settings")]
     public float triggerDistance = 3f;
     public KeyCode interactionKey = KeyCode.E;
+    
+    [Header("Arcweave References")]
     public ArcweavePlayer arcweavePlayer;
-    public GameObject dialoguePanel;
     
     [Header("Arcweave Dialogue Settings")]
     [Tooltip("Specific board name to search for the NPC's dialogue. Leave blank to search all boards.")]
     public string specificBoardName;
-
+    
+    [Tooltip("Tag that indicates the end of dialogue")]
+    public string dialogueEndTag = "dialogue_end";
+    
     private GameObject player;
     private bool canInteract = false;
+    private bool isInDialogue = false;
     
     void Start()
     {
+        // Find the player GameObject
         player = GameObject.FindGameObjectWithTag("Player");
         
-        // Hide dialogue panel at the start
-        if (dialoguePanel)
-            dialoguePanel.SetActive(false);
+        // Set up Arcweave event subscriptions if available
+        if (arcweavePlayer != null)
+        {
+            arcweavePlayer.onProjectFinish += OnProjectFinish;
+        }
+    }
+    
+    void OnDisable()
+    {
+        // Clean up event subscriptions
+        if (arcweavePlayer != null)
+        {
+            arcweavePlayer.onProjectFinish -= OnProjectFinish;
+        }
     }
     
     void Update()
     {
         if (!player || !arcweavePlayer) return;
+        
+        // Skip interaction checks if already in dialogue
+        if (isInDialogue) return;
         
         // Check if the player is close enough
         float distance = Vector3.Distance(transform.position, player.transform.position);
@@ -36,37 +57,60 @@ public class DialogueTrigger : MonoBehaviour
         // If the player can interact and presses the key
         if (canInteract && Input.GetKeyDown(interactionKey))
         {
-            if (dialoguePanel)
-                dialoguePanel.SetActive(true);
-            
-            // Find the starting element based on the NPC's name
-            StartDialogueForNPC();
+            StartDialogue();
         }
     }
     
-    void StartDialogueForNPC()
+    // Start the dialogue with this NPC
+    private void StartDialogue()
     {
-        // If the Arcweave project is not assigned, log an error
+        isInDialogue = true;
+        
+        // Tell GameManager to switch to dialogue state
+        GameManager.Instance.StartDialogue(this);
+        
+        // Find and start the proper dialogue element
+        FindAndStartNPCDialogue();
+    }
+    
+    // End the dialogue and return to gameplay
+    public void EndDialogue()
+    {
+        isInDialogue = false;
+        GameManager.Instance.EndDialogue();
+    }
+    
+    // Called when Arcweave project finishes
+    private void OnProjectFinish(Arcweave.Project.Project project)
+    {
+        // End the dialogue when project finishes
+        EndDialogue();
+    }
+    
+    // Find and start the appropriate dialogue for this NPC
+    private void FindAndStartNPCDialogue()
+    {
+        // Check if Arcweave project is assigned
         if (arcweavePlayer.aw == null)
         {
             Debug.LogError("No Arcweave Project assigned in the inspector!");
             return;
         }
 
-        // Get the component with the same name as this GameObject
+        // Find component matching this GameObject's name
         var component = arcweavePlayer.aw.Project.components.Find(c => c.Name == gameObject.name);
         
         if (component == null)
         {
             Debug.LogWarning($"No Arcweave component found with the name '{gameObject.name}'");
-            arcweavePlayer.PlayProject(); // Fallback to default starting element
+            arcweavePlayer.PlayProject(); // Fallback to default
             return;
         }
 
-        // Try to find an element in the project that has this component
+        // Find element with this component
         Arcweave.Project.Element startingElement = null;
         
-        // If a specific board name is provided, search only that board
+        // Search in specific board if provided
         if (!string.IsNullOrEmpty(specificBoardName))
         {
             var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board.Name == specificBoardName);
@@ -80,30 +124,26 @@ public class DialogueTrigger : MonoBehaviour
 
             foreach (var node in targetBoard.Nodes)
             {
-                if (node is Arcweave.Project.Element element)
+                if (node is Arcweave.Project.Element element && 
+                    element.Components.Any(c => c.Name == component.Name))
                 {
-                    if (element.Components.Any(c => c.Name == component.Name))
-                    {
-                        startingElement = element;
-                        break;
-                    }
+                    startingElement = element;
+                    break;
                 }
             }
         }
-        // If no specific board, search all boards
+        // Or search all boards
         else
         {
             foreach (var board in arcweavePlayer.aw.Project.boards)
             {
                 foreach (var node in board.Nodes)
                 {
-                    if (node is Arcweave.Project.Element element)
+                    if (node is Arcweave.Project.Element element && 
+                        element.Components.Any(c => c.Name == component.Name))
                     {
-                        if (element.Components.Any(c => c.Name == component.Name))
-                        {
-                            startingElement = element;
-                            break;
-                        }
+                        startingElement = element;
+                        break;
                     }
                 }
 
@@ -112,24 +152,39 @@ public class DialogueTrigger : MonoBehaviour
             }
         }
 
+        // If no element found, use default
         if (startingElement == null)
         {
             Debug.LogWarning($"No starting element found for component '{component.Name}'" + 
                 (string.IsNullOrEmpty(specificBoardName) ? "" : $" in board '{specificBoardName}'"));
-            arcweavePlayer.PlayProject(); // Fallback to default starting element
+            arcweavePlayer.PlayProject();
             return;
         }
 
-        // Override the starting element and play the project
+        // Set starting element and play
         arcweavePlayer.aw.Project.StartingElement = startingElement;
         arcweavePlayer.PlayProject();
     }
     
+    // Check if an element has the dialogue_end tag
+    public bool HasDialogueEndTag(Arcweave.Project.Element element)
+    {
+        foreach (var attribute in element.Attributes)
+        {
+            string data = attribute.data?.ToString();
+            if (data != null && data.Contains(dialogueEndTag))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     void OnGUI()
     {
-        if (canInteract)
+        if (canInteract && !isInDialogue)
         {
-            // Show an interaction prompt on screen
+            // Show interaction prompt
             GUI.Label(new Rect(Screen.width/2 - 100, Screen.height - 50, 200, 30), 
                      "Press E to talk");
         }
