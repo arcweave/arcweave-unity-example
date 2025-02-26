@@ -683,6 +683,8 @@ MonoBehaviour:
   arcweaveUI: {fileID: 1320544267}
   playerController: {fileID: 289867024}
   cameraController: {fileID: 330585548}
+  dialogueEndTag: dialogue_end
+  dialogueStartTag: dialogue_start
 --- !u!4 &723252307
 Transform:
   m_ObjectHideFlags: 0
@@ -719,7 +721,7 @@ MonoBehaviour:
   interactionKey: 101
   arcweavePlayer: {fileID: 1168690309}
   specificBoardName: Wanda Dialogue
-  dialogueEndTag: dialogue_end
+  initializeOnStart: 0
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -914,7 +916,7 @@ MonoBehaviour:
   interactionKey: 101
   arcweavePlayer: {fileID: 1168690309}
   specificBoardName: Healer Dialogue
-  dialogueEndTag: dialogue_end
+  initializeOnStart: 0
 --- !u!1 &1552164129
 GameObject:
   m_ObjectHideFlags: 0
@@ -1124,7 +1126,7 @@ MonoBehaviour:
   interactionKey: 101
   arcweavePlayer: {fileID: 0}
   specificBoardName: 
-  dialogueEndTag: dialogue_end
+  initializeOnStart: 0
 --- !u!1 &1938594670
 GameObject:
   m_ObjectHideFlags: 0

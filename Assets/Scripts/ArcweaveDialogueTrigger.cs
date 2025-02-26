@@ -1,6 +1,7 @@
 using UnityEngine;
 using Arcweave;
 using System.Linq;
+using Arcweave.Project;
 
 public class DialogueTrigger : MonoBehaviour
 {
@@ -92,75 +93,52 @@ public class DialogueTrigger : MonoBehaviour
     // Find and start the appropriate dialogue for this NPC
     private void FindAndStartNPCDialogue()
     {
- 
-
-        // Find component matching this GameObject's name
-        var component = arcweavePlayer.aw.Project.components.Find(c => c.Name == gameObject.name);
-        
-        if (component == null)
+        // Se non è specificata una board, usa l'elemento iniziale predefinito
+        if (string.IsNullOrEmpty(specificBoardName))
         {
-            Debug.LogWarning($"No Arcweave component found with the name '{gameObject.name}'");
-            arcweavePlayer.PlayProject(); // Fallback to default
+            Debug.LogWarning("No specific board name provided, using default starting element");
+            arcweavePlayer.PlayProject();
             return;
         }
 
-        // Find element with this component
-        Arcweave.Project.Element startingElement = null;
-        
-        // Search in specific board if provided
-        if (!string.IsNullOrEmpty(specificBoardName))
+        // Cerca la board specificata
+        var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board.Name == specificBoardName);
+        if (targetBoard == null)
         {
-            var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board.Name == specificBoardName);
-            
-            if (targetBoard == null)
-            {
-                Debug.LogWarning($"No board found with the name '{specificBoardName}'");
-                arcweavePlayer.PlayProject();
-                return;
-            }
-
-            foreach (var node in targetBoard.Nodes)
-            {
-                if (node is Arcweave.Project.Element element && 
-                    element.Components.Any(c => c.Name == component.Name))
-                {
-                    startingElement = element;
-                    break;
-                }
-            }
+            Debug.LogWarning($"Board '{specificBoardName}' not found, using default starting element");
+            arcweavePlayer.PlayProject();
+            return;
         }
-        // Or search all boards
-        else
+
+        // Cerca un elemento con il tag dialogue_start nella board specificata
+        Element startingElement = null;
+        foreach (var node in targetBoard.Nodes)
         {
-            foreach (var board in arcweavePlayer.aw.Project.boards)
+            if (node is Element element)
             {
-                foreach (var node in board.Nodes)
+                foreach (var attribute in element.Attributes)
                 {
-                    if (node is Arcweave.Project.Element element && 
-                        element.Components.Any(c => c.Name == component.Name))
+                    string data = attribute.data?.ToString();
+                    if (data != null && data.Contains(GameManager.Instance.dialogueStartTag))
                     {
                         startingElement = element;
                         break;
                     }
                 }
-
-                if (startingElement != null)
-                    break;
+                if (startingElement != null) break;
             }
         }
 
-        // If no element found, use default
-        if (startingElement == null)
+        if (startingElement != null)
         {
-            Debug.LogWarning($"No starting element found for component '{component.Name}'" + 
-                (string.IsNullOrEmpty(specificBoardName) ? "" : $" in board '{specificBoardName}'"));
-            arcweavePlayer.PlayProject();
-            return;
+            // Usa l'elemento trovato con il tag nella board specificata
+            arcweavePlayer.Next(startingElement);
         }
-
-        // Set starting element and play
-        arcweavePlayer.aw.Project.StartingElement = startingElement;
-        arcweavePlayer.PlayProject();
+        else
+        {
+            Debug.LogWarning($"No element with tag '{GameManager.Instance.dialogueStartTag}' found in board '{specificBoardName}', using default starting element");
+            arcweavePlayer.PlayProject();
+        }
     }
     
     void OnGUI()

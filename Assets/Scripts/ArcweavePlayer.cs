@@ -34,49 +34,62 @@ namespace Arcweave
 
         //...
         public void PlayProject() {
-    if (aw == null) {
-        Debug.LogError("There is no Arcweave Project assigned in the inspector of Arcweave Player");
-        return;
-    }
+            if (aw == null) {
+                Debug.LogError("There is no Arcweave Project assigned in the inspector of Arcweave Player");
+                return;
+            }
 
-    aw.Project.Initialize();
-    
-    // Trova l'elemento iniziale con la logica personalizzata
-    Element startingElement = FindStartingElement();
-    
-    if (startingElement == null) {
-        Debug.LogError("No starting element found with the specified criteria");
-        return;
-    }
-
-    if (onProjectStart != null) onProjectStart(aw.Project);
-    
-    Next(startingElement);
-}
-
-private Element FindStartingElement() {
-    // Cerca in tutte le board
-    foreach (var board in aw.Project.boards) {
-        // Cerca gli elementi nella board
-        foreach (var node in board.Nodes.OfType<Element>()) {
-            // Controlla se l'elemento ha un componente "character"
-            if (node.TryGetComponent("character", out var characterComponent)) {
-                // Opzionalmente, puoi aggiungere ulteriori controlli sull'attributo
-                var hasStartingDialogueAttribute = node.Attributes.Any(attr => 
-                    attr.Name == "starting_dialogue_elements" && 
-                    (bool)attr.data == true
-                );
+            // Prima inizializziamo il progetto
+            aw.Project.Initialize();
+            
+            // Poi carichiamo le variabili salvate se esistono
+            if (PlayerPrefs.HasKey(SAVE_KEY + "_variables")) {
+                var variables = PlayerPrefs.GetString(SAVE_KEY + "_variables");
+                Debug.Log($"Loading variables: {variables}"); // Debug log
+                aw.Project.LoadVariables(variables);
                 
-                if (hasStartingDialogueAttribute) {
-                    return node;
+                // Verifichiamo che le variabili siano state caricate correttamente
+                var currentVars = aw.Project.SaveVariables();
+                Debug.Log($"Current variables after loading: {currentVars}"); // Debug log
+            } else {
+                Debug.Log("No saved variables found"); // Debug log
+            }
+            
+            Element startingElement = FindStartingElement();
+            
+            if (startingElement == null) {
+                Debug.LogError("No starting element found with the specified criteria");
+                return;
+            }
+
+            if (onProjectStart != null) onProjectStart(aw.Project);
+            
+            Next(startingElement);
+        }
+
+        private Element FindStartingElement() {
+            // Cerca in tutte le board
+            foreach (var board in aw.Project.boards) {
+                // Cerca gli elementi nella board
+                foreach (var node in board.Nodes.OfType<Element>()) {
+                    // Controlla se l'elemento ha un componente "character"
+                    if (node.TryGetComponent("character", out var characterComponent)) {
+                        // Opzionalmente, puoi aggiungere ulteriori controlli sull'attributo
+                        var hasStartingDialogueAttribute = node.Attributes.Any(attr => 
+                            attr.Name == "starting_dialogue_elements" && 
+                            (bool)attr.data == true
+                        );
+                        
+                        if (hasStartingDialogueAttribute) {
+                            return node;
+                        }
+                    }
                 }
             }
+            
+            // Fallback all'elemento iniziale originale se non trova nulla
+            return aw.Project.StartingElement;
         }
-    }
-    
-    // Fallback all'elemento iniziale originale se non trova nulla
-    return aw.Project.StartingElement;
-}
 
         ///Moves to the next element through a path
         void Next(Path path) {
@@ -85,24 +98,27 @@ private Element FindStartingElement() {
         }
 
         ///Moves to the next/an element directly
-        void Next(Element element) {
+        public void Next(Element element) {
             currentElement = element;
             currentElement.Visits++;
-            if ( onElementEnter != null ) onElementEnter(element);
+            if (onElementEnter != null) onElementEnter(element);
             var currentState = currentElement.GetOptions();
-            if ( currentState.hasPaths ) {
-                if ( currentState.hasOptions ) {
-                    if ( onElementOptions != null ) {
+            if (currentState.hasPaths) {
+                if (currentState.hasOptions) {
+                    if (onElementOptions != null) {
                         onElementOptions(currentState, (index) => Next(currentState.Paths[index]));
                     }
                     return;
                 }
 
-                if ( onWaitInputNext != null ) onWaitInputNext(() => Next(currentState.Paths[0]));
+                if (onWaitInputNext != null) onWaitInputNext(() => Next(currentState.Paths[0]));
                 return;
             }
+            
+            Save();
+            
             currentElement = null;
-            if ( onProjectFinish != null ) onProjectFinish(aw.Project);
+            if (onProjectFinish != null) onProjectFinish(aw.Project);
         }
 
         ///----------------------------------------------------------------------------------------------
@@ -111,8 +127,10 @@ private Element FindStartingElement() {
         public void Save() {
             var id = currentElement.Id;
             var variables = aw.Project.SaveVariables();
+            Debug.Log($"Saving variables: {variables}"); // Debug log
             PlayerPrefs.SetString(SAVE_KEY+"_currentElement", id);
             PlayerPrefs.SetString(SAVE_KEY+"_variables", variables);
+            PlayerPrefs.Save(); // Forziamo il salvataggio immediato
         }
 
         ///Loads the prviously current element and the variables and moves Next to that element.
@@ -122,6 +140,12 @@ private Element FindStartingElement() {
             var element = aw.Project.ElementWithId(id);
             aw.Project.LoadVariables(variables);
             Next(element);
+        }
+
+        public void ResetVariables() {
+            PlayerPrefs.DeleteKey(SAVE_KEY + "_variables");
+            PlayerPrefs.DeleteKey(SAVE_KEY + "_currentElement");
+            aw.Project.Initialize(); // Questo reimposterà tutte le variabili ai loro valori predefiniti
         }
     }
 }

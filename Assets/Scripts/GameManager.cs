@@ -1,5 +1,6 @@
 using UnityEngine;
 using Arcweave;
+using Arcweave.Project;
 
 public class GameManager : MonoBehaviour
 {
@@ -120,23 +121,14 @@ public class GameManager : MonoBehaviour
         if (cameraController != null)
             cameraController.enabled = false;
             
-        // Show Arcweave UI
+        // Activate Arcweave UI
         if (arcweaveUI != null)
             arcweaveUI.SetActive(true);
     }
     
-    // Method to start dialogue
+    // Method to start dialogue with a specific trigger
     public void StartDialogue(DialogueTrigger trigger)
     {
-        if (trigger == null || trigger.arcweavePlayer == null)
-        {
-            Debug.LogError("Invalid dialogue trigger or Arcweave Player!");
-            return;
-        }
-
-        // Initialize project if needed
-  
-
         activeDialogueTrigger = trigger;
         SetGameState(GameState.Dialogue);
     }
@@ -199,39 +191,4 @@ public class GameManager : MonoBehaviour
         Debug.LogWarning($"No element found with tag '{tag}'");
         player.PlayProject();
     }
-
-    // Modifica la funzione StartDialogueFromTag per usare la variabile serializzata
-    public void StartDialogueFromTag(ArcweavePlayer player)
-    {
-        if (player == null || player.aw == null)
-        {
-            Debug.LogError("Arcweave Player is not assigned!");
-            return;
-        }
-
-        foreach (var board in player.aw.Project.boards)
-        {
-            foreach (var node in board.Nodes)
-            {
-                if (node is Arcweave.Project.Element element)
-                {
-                    foreach (var attribute in element.Attributes)
-                    {
-                        string data = attribute.data?.ToString();
-                        if (data != null && data.Contains(dialogueStartTag))
-                        {
-                            player.aw.Project.StartingElement = element;
-                            player.PlayProject();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        Debug.LogWarning($"No element found with tag '{dialogueStartTag}'");
-        player.PlayProject();
-    }
-
-    
 }
