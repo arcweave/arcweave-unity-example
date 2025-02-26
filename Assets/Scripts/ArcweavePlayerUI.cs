@@ -102,7 +102,7 @@ namespace Arcweave
             if (GameManager.Instance != null)
                 activeTrigger = GameManager.Instance.GetActiveDialogueTrigger();
                 
-            isDialogueEndElement = (activeTrigger != null && activeTrigger.HasDialogueEndTag(element));
+            isDialogueEndElement = activeTrigger != null && GameManager.Instance.HasDialogueEndTag(element);
             
             if (isDialogueEndElement)
                 Debug.Log("Found element with dialogue_end tag");

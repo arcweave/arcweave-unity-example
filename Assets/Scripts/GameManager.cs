@@ -21,6 +21,13 @@ public class GameManager : MonoBehaviour
     public PlayerController playerController;
     public ThirdPersonCamera cameraController;
     
+    [Header("Dialogue Tags")]
+    [Tooltip("Tag that indicates the end of dialogue")]
+    public string dialogueEndTag = "dialogue_end";
+
+    [Tooltip("Tag that indicates the start of dialogue")]
+    public string dialogueStartTag = "dialogue_start";
+    
     // Event that other scripts can subscribe to
     public delegate void GameStateChangedDelegate(GameState newState);
     public event GameStateChangedDelegate OnGameStateChanged;
@@ -121,6 +128,15 @@ public class GameManager : MonoBehaviour
     // Method to start dialogue
     public void StartDialogue(DialogueTrigger trigger)
     {
+        if (trigger == null || trigger.arcweavePlayer == null)
+        {
+            Debug.LogError("Invalid dialogue trigger or Arcweave Player!");
+            return;
+        }
+
+        // Initialize project if needed
+  
+
         activeDialogueTrigger = trigger;
         SetGameState(GameState.Dialogue);
     }
@@ -136,4 +152,86 @@ public class GameManager : MonoBehaviour
     {
         return activeDialogueTrigger;
     }
+
+    // Modifica la funzione HasDialogueEndTag per usare la variabile serializzata
+    public bool HasDialogueEndTag(Arcweave.Project.Element element)
+    {
+        foreach (var attribute in element.Attributes)
+        {
+            string data = attribute.data?.ToString();
+            if (data != null && data.Contains(dialogueEndTag))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Aggiungi questa nuova funzione
+    public void StartProjectFromTag(string tag, ArcweavePlayer player)
+    {
+        if (player == null || player.aw == null)
+        {
+            Debug.LogError("Arcweave Player is not assigned!");
+            return;
+        }
+
+        foreach (var board in player.aw.Project.boards)
+        {
+            foreach (var node in board.Nodes)
+            {
+                if (node is Arcweave.Project.Element element)
+                {
+                    foreach (var attribute in element.Attributes)
+                    {
+                        string data = attribute.data?.ToString();
+                        if (data != null && data.Contains(tag))
+                        {
+                            player.aw.Project.StartingElement = element;
+                            player.PlayProject();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        Debug.LogWarning($"No element found with tag '{tag}'");
+        player.PlayProject();
+    }
+
+    // Modifica la funzione StartDialogueFromTag per usare la variabile serializzata
+    public void StartDialogueFromTag(ArcweavePlayer player)
+    {
+        if (player == null || player.aw == null)
+        {
+            Debug.LogError("Arcweave Player is not assigned!");
+            return;
+        }
+
+        foreach (var board in player.aw.Project.boards)
+        {
+            foreach (var node in board.Nodes)
+            {
+                if (node is Arcweave.Project.Element element)
+                {
+                    foreach (var attribute in element.Attributes)
+                    {
+                        string data = attribute.data?.ToString();
+                        if (data != null && data.Contains(dialogueStartTag))
+                        {
+                            player.aw.Project.StartingElement = element;
+                            player.PlayProject();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        Debug.LogWarning($"No element found with tag '{dialogueStartTag}'");
+        player.PlayProject();
+    }
+
+    
 }

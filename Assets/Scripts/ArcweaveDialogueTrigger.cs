@@ -15,8 +15,9 @@ public class DialogueTrigger : MonoBehaviour
     [Tooltip("Specific board name to search for the NPC's dialogue. Leave blank to search all boards.")]
     public string specificBoardName;
     
-    [Tooltip("Tag that indicates the end of dialogue")]
-    public string dialogueEndTag = "dialogue_end";
+    [Header("Arcweave Initialization")]
+    [Tooltip("Should the project be initialized when the game starts?")]
+    public bool initializeOnStart = false;
     
     private GameObject player;
     private bool canInteract = false;
@@ -31,6 +32,7 @@ public class DialogueTrigger : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+      
         }
     }
     
@@ -90,12 +92,7 @@ public class DialogueTrigger : MonoBehaviour
     // Find and start the appropriate dialogue for this NPC
     private void FindAndStartNPCDialogue()
     {
-        // Check if Arcweave project is assigned
-        if (arcweavePlayer.aw == null)
-        {
-            Debug.LogError("No Arcweave Project assigned in the inspector!");
-            return;
-        }
+ 
 
         // Find component matching this GameObject's name
         var component = arcweavePlayer.aw.Project.components.Find(c => c.Name == gameObject.name);
@@ -164,20 +161,6 @@ public class DialogueTrigger : MonoBehaviour
         // Set starting element and play
         arcweavePlayer.aw.Project.StartingElement = startingElement;
         arcweavePlayer.PlayProject();
-    }
-    
-    // Check if an element has the dialogue_end tag
-    public bool HasDialogueEndTag(Arcweave.Project.Element element)
-    {
-        foreach (var attribute in element.Attributes)
-        {
-            string data = attribute.data?.ToString();
-            if (data != null && data.Contains(dialogueEndTag))
-            {
-                return true;
-            }
-        }
-        return false;
     }
     
     void OnGUI()
