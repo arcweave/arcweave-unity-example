@@ -5,45 +5,44 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
-    
-    private Rigidbody rb;
+
+    private Animator animator;
     private Transform cameraTransform;
     
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        
-        // Assicurati che il Rigidbody non ruoti a causa delle collisioni
-        rb.freezeRotation = true;
-        
-        // Trova la camera principale
+        animator = GetComponent<Animator>();
         if (Camera.main != null)
             cameraTransform = Camera.main.transform;
     }
     
     void Update()
     {
-        // Gestisci l'input
+        // Input
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         
-        // Crea il vettore di movimento basato sull'input
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        // Movimento
+        Vector3 movement = new Vector3(horizontal, 0f, vertical);
         
-        if (direction.magnitude >= 0.1f)
+        if (movement.magnitude > 0)
         {
-            // Calcola l'angolo di rotazione basato sulla direzione dell'input e sulla camera
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+            // Rotazione basata sulla camera
+            float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+            Quaternion rotation = Quaternion.Euler(0, targetAngle, 0);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
+
+            // Movimento nella direzione dello sguardo
+            Vector3 moveDirection = rotation * Vector3.forward;
+            transform.position += moveDirection * moveSpeed * Time.deltaTime;
             
-            // Ruota gradualmente il personaggio nella direzione del movimento
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, 0.1f);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-            
-            // Muovi il personaggio nella direzione indicata dalla camera
-            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            rb.MovePosition(rb.position + moveDir * moveSpeed * Time.deltaTime);
+            // Animazione
+            if (animator != null)
+                animator.SetFloat("Speed", movement.magnitude);
+        }
+        else if (animator != null)
+        {
+            animator.SetFloat("Speed", 0);
         }
     }
-    
-    private float turnSmoothVelocity;
 }

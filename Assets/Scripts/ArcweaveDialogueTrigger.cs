@@ -2,12 +2,19 @@ using UnityEngine;
 using Arcweave;
 using System.Linq;
 using Arcweave.Project;
+using TMPro;  // Aggiungiamo questo per usare TextMeshPro
 
 public class DialogueTrigger : MonoBehaviour
 {
     [Header("Interaction Settings")]
     public float triggerDistance = 3f;
     public KeyCode interactionKey = KeyCode.E;
+    
+    [Header("UI Settings")]
+    [Tooltip("Riferimento al componente TextMeshPro per il testo di interazione")]
+    public TextMeshPro interactionText;
+    [Tooltip("Il testo che apparirà sopra l'NPC quando il giocatore è vicino")]
+    public string interactionMessage = "Press E to talk";
     
     [Header("Arcweave References")]
     public ArcweavePlayer arcweavePlayer;
@@ -33,7 +40,13 @@ public class DialogueTrigger : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
-      
+        }
+
+        // Imposta il testo iniziale se è stato assegnato un TextMeshPro
+        if (interactionText != null)
+        {
+            interactionText.text = interactionMessage;
+            interactionText.enabled = false;
         }
     }
     
@@ -56,6 +69,17 @@ public class DialogueTrigger : MonoBehaviour
         // Check if the player is close enough
         float distance = Vector3.Distance(transform.position, player.transform.position);
         canInteract = distance < triggerDistance;
+        
+        // Mostra o nascondi il testo
+        if (interactionText != null)
+        {
+            interactionText.enabled = canInteract && !isInDialogue;
+            if (interactionText.enabled)
+            {
+                // Fai guardare il testo verso la camera
+                interactionText.transform.rotation = Camera.main.transform.rotation;
+            }
+        }
         
         // If the player can interact and presses the key
         if (canInteract && Input.GetKeyDown(interactionKey))
@@ -147,14 +171,10 @@ public class DialogueTrigger : MonoBehaviour
         }
     }
     
-    void OnGUI()
+    void OnDestroy()
     {
-        if (canInteract && !isInDialogue)
-        {
-            // Show interaction prompt
-            GUI.Label(new Rect(Screen.width/2 - 100, Screen.height - 50, 200, 30), 
-                     "Press E to talk");
-        }
+        if (interactionText != null)
+            Destroy(interactionText.gameObject);
     }
     
     // Visualize interaction radius in the editor
