@@ -72,6 +72,12 @@ public class DialogueTrigger : MonoBehaviour
         // Tell GameManager to switch to dialogue state
         GameManager.Instance.StartDialogue(this);
         
+        // Clear any existing UI elements before starting new dialogue
+        if (arcweavePlayer != null && arcweavePlayer.GetComponent<ArcweavePlayerUI>() != null)
+        {
+            arcweavePlayer.GetComponent<ArcweavePlayerUI>().ClearTempButtons();
+        }
+        
         // Find and start the proper dialogue element
         FindAndStartNPCDialogue();
     }

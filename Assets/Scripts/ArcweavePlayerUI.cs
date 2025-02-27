@@ -58,6 +58,9 @@ namespace Arcweave
         }
 
         void OnElementEnter(Element element) {
+            // Clear any existing buttons before processing new element
+            ClearTempButtons();
+            
             // Reset component cover visibility
             componentCover.gameObject.SetActive(false);
             
@@ -117,11 +120,10 @@ namespace Arcweave
                 if (isDialogueEndElement) {
                     // For dialogue_end elements, create button that ends dialogue after selection
                     button = MakeButton(text, () => {
-                        // First process the normal callback
+                        // First end dialogue immediately
+                        EndCurrentDialogue();
+                        // Then process the callback
                         callback(index);
-                        
-                        // Then end dialogue after a short delay
-                        Invoke("EndCurrentDialogue", 0.5f);
                     });
                 } else {
                     // Normal behavior for non-ending elements
@@ -148,11 +150,10 @@ namespace Arcweave
             if (isDialogueEndElement) {
                 // For dialogue_end elements with no options, create an "End Conversation" button
                 MakeButton("End Conversation", () => {
-                    // First run the normal callback
+                    // First end dialogue immediately
+                    EndCurrentDialogue();
+                    // Then run the callback
                     callback();
-                    
-                    // Then end dialogue
-                    Invoke("EndCurrentDialogue", 0.5f);
                 });
             } else {
                 // Normal continue button
@@ -193,7 +194,7 @@ namespace Arcweave
             return button;
         }
 
-        void ClearTempButtons() {
+        public void ClearTempButtons() {
             // Clean up temporary buttons
             foreach (var b in tempButtons) {
                 Destroy(b.gameObject);
