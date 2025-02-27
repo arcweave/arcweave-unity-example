@@ -714,7 +714,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 709746698358356517, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 1035
+      value: 1088.0906
       objectReference: {fileID: 0}
     - target: {fileID: 709746698358356517, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1379,6 +1379,59 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &766655647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 766655643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ae832d1c7fb38742ba5dd6e4de01fe9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  arcweavePlayer: {fileID: 1168690309}
+  variableEvents:
+  - arcweaveVariableName: wanda_health
+    onBooleanChanged:
+      m_PersistentCalls:
+        m_Calls: []
+    onIntegerChanged:
+      m_PersistentCalls:
+        m_Calls: []
+    onFloatChanged:
+      m_PersistentCalls:
+        m_Calls: []
+    onStringChanged:
+      m_PersistentCalls:
+        m_Calls: []
+    conditions:
+    - condition: 4
+      compareValue: 40
+      onConditionMet:
+        m_PersistentCalls:
+          m_Calls:
+          - m_Target: {fileID: 766655646}
+            m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+            m_MethodName: set_enabled
+            m_Mode: 6
+            m_Arguments:
+              m_ObjectArgument: {fileID: 0}
+              m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+              m_IntArgument: 0
+              m_FloatArgument: 0
+              m_StringArgument: 
+              m_BoolArgument: 0
+            m_CallState: 2
+      onConditionExited:
+        m_PersistentCalls:
+          m_Calls: []
+      wasConditionMet: 0
+    previousBool: 0
+    previousInt: 0
+    previousFloat: 0
+    previousString: 
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -2092,6 +2145,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 766655646}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 766655647}
   m_SourcePrefab: {fileID: 100100000, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
