@@ -2,7 +2,7 @@ using UnityEngine;
 using Arcweave;
 using System.Linq;
 using Arcweave.Project;
-using TMPro;  // Aggiungiamo questo per usare TextMeshPro
+using TMPro;  // Add this to use TextMeshPro
 
 public class DialogueTrigger : MonoBehaviour
 {
@@ -11,9 +11,9 @@ public class DialogueTrigger : MonoBehaviour
     public KeyCode interactionKey = KeyCode.E;
     
     [Header("UI Settings")]
-    [Tooltip("Riferimento al componente TextMeshPro per il testo di interazione")]
+    [Tooltip("Reference to the TextMeshPro component for interaction text")]
     public TextMeshPro interactionText;
-    [Tooltip("Il testo che apparirà sopra l'NPC quando il giocatore è vicino")]
+    [Tooltip("Text that appears above the NPC when the player is nearby")]
     public string interactionMessage = "Press E to talk";
     
     [Header("Arcweave References")]
@@ -42,7 +42,7 @@ public class DialogueTrigger : MonoBehaviour
             arcweavePlayer.onProjectFinish += OnProjectFinish;
         }
 
-        // Imposta il testo iniziale se è stato assegnato un TextMeshPro
+        // Set initial text if TextMeshPro is assigned
         if (interactionText != null)
         {
             interactionText.text = interactionMessage;
@@ -70,13 +70,13 @@ public class DialogueTrigger : MonoBehaviour
         float distance = Vector3.Distance(transform.position, player.transform.position);
         canInteract = distance < triggerDistance;
         
-        // Mostra o nascondi il testo
+        // Show or hide the interaction text
         if (interactionText != null)
         {
             interactionText.enabled = canInteract && !isInDialogue;
             if (interactionText.enabled)
             {
-                // Fai guardare il testo verso la camera
+                // Make the text face the camera
                 interactionText.transform.rotation = Camera.main.transform.rotation;
             }
         }
@@ -123,7 +123,7 @@ public class DialogueTrigger : MonoBehaviour
     // Find and start the appropriate dialogue for this NPC
     private void FindAndStartNPCDialogue()
     {
-        // Se non è specificata una board, usa l'elemento iniziale predefinito
+        // If no board is specified, use the default starting element
         if (string.IsNullOrEmpty(specificBoardName))
         {
             Debug.LogWarning("No specific board name provided, using default starting element");
@@ -131,7 +131,7 @@ public class DialogueTrigger : MonoBehaviour
             return;
         }
 
-        // Cerca la board specificata
+        // Search for the specified board
         var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board.Name == specificBoardName);
         if (targetBoard == null)
         {
@@ -140,7 +140,7 @@ public class DialogueTrigger : MonoBehaviour
             return;
         }
 
-        // Cerca un elemento con il tag dialogue_start nella board specificata
+        // Search for an element with the dialogue_start tag in the specified board
         Element startingElement = null;
         foreach (var node in targetBoard.Nodes)
         {
@@ -161,7 +161,7 @@ public class DialogueTrigger : MonoBehaviour
 
         if (startingElement != null)
         {
-            // Usa l'elemento trovato con il tag nella board specificata
+            // Use the element found with the tag in the specified board
             arcweavePlayer.Next(startingElement);
         }
         else

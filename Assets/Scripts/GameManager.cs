@@ -3,6 +3,7 @@ using Arcweave;
 using Arcweave.Project;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI;
 
 /// <summary>
 /// Main game manager that handles game states, UI, and player controls
@@ -28,6 +29,10 @@ public class GameManager : MonoBehaviour
     public GameObject importerUI;        // UI for importing Arcweave projects
     public PlayerController playerController;
     public ThirdPersonCamera cameraController;
+    public GameObject characterWithAnimator;  // Reference to the GameObject with the Animator
+    public Button quitButton;            // Reference to the quit game button
+
+    private Animator animator;  // Reference to the character's Animator
 
     [Header("Message UI")]
     public TextMeshProUGUI messageText;  // Text component for displaying temporary messages
@@ -62,11 +67,44 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Application.targetFrameRate = 60;
+        
+        // Initialize animator
+        if (characterWithAnimator != null)
+        {
+            animator = characterWithAnimator.GetComponent<Animator>();
+            if (animator == null)
+            {
+                Debug.LogError("No Animator component found on characterWithAnimator!");
+            }
+            else
+            {
+                Debug.Log("Animator initialized successfully");
+                // Verify the parameter exists
+                foreach (AnimatorControllerParameter param in animator.parameters)
+                {
+                    if (param.name == "isInDialogue")
+                    {
+                        Debug.Log("Found isInDialogue parameter in Animator");
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("characterWithAnimator is not assigned in GameManager!");
+        }
+
         // Initialize UI states
         if (arcweaveUI != null) arcweaveUI.SetActive(false);
+        
+        // Setup quit button
+        if (quitButton != null)
+        {
+            quitButton.onClick.AddListener(QuitGame);
+        }
+        
         SetGameState(GameState.Gameplay);
-
-
     }
     
     private void Update()
@@ -140,6 +178,17 @@ public class GameManager : MonoBehaviour
         if (playerController != null) playerController.enabled = true;
         if (cameraController != null) cameraController.enabled = true;
         
+        // Set animator state for gameplay
+        if (animator != null)
+        {
+            animator.SetBool("isInDialogue", false);
+            Debug.Log($"Setting isInDialogue to false. Current value: {animator.GetBool("isInDialogue")}");
+        }
+        else
+        {
+            Debug.LogError("Animator is null in EnableGameplayControls!");
+        }
+        
         activeDialogueTrigger = null;
     }
     
@@ -153,6 +202,17 @@ public class GameManager : MonoBehaviour
         
         if (playerController != null) playerController.enabled = false;
         if (cameraController != null) cameraController.enabled = false;
+        
+        // Set animator state for dialogue
+        if (animator != null)
+        {
+            animator.SetBool("isInDialogue", true);
+            Debug.Log($"Setting isInDialogue to true. Current value: {animator.GetBool("isInDialogue")}");
+        }
+        else
+        {
+            Debug.LogError("Animator is null in DisableGameplayControls!");
+        }
     }
     
     #region Dialogue Management
@@ -287,4 +347,26 @@ public class GameManager : MonoBehaviour
     }
     
     #endregion
+
+    private void OnDestroy()
+    {
+        // Clean up button listener
+        if (quitButton != null)
+        {
+            quitButton.onClick.RemoveListener(QuitGame);
+        }
+    }
+
+    /// <summary>
+    /// Quits the game
+    /// </summary>
+    public void QuitGame()
+    {
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
+        Debug.Log("Quitting game...");
+    }
 }
