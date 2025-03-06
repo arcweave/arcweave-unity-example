@@ -18,27 +18,35 @@ public class PlayerController : MonoBehaviour
     
     void Update()
     {
-        // Input
+        // Get input
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         
-        // Movimento
-        Vector3 movement = new Vector3(horizontal, 0f, vertical);
+        // Create movement vector relative to camera orientation
+        Vector3 forward = cameraTransform.forward;
+        Vector3 right = cameraTransform.right;
+        
+        // Project vectors onto the horizontal plane
+        forward.y = 0;
+        right.y = 0;
+        forward.Normalize();
+        right.Normalize();
+        
+        // Combine movement
+        Vector3 movement = (forward * vertical + right * horizontal).normalized;
         
         if (movement.magnitude > 0)
         {
-            // Rotazione basata sulla camera
-            float targetAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
-            Quaternion rotation = Quaternion.Euler(0, targetAngle, 0);
-            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
-
-            // Movimento nella direzione dello sguardo
-            Vector3 moveDirection = rotation * Vector3.forward;
-            transform.position += moveDirection * moveSpeed * Time.deltaTime;
+            // Rotate towards movement direction
+            Quaternion targetRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             
-            // Animazione
+            // Move
+            transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
+            
+            // Update animation
             if (animator != null)
-                animator.SetFloat("Speed", movement.magnitude);
+                animator.SetFloat("Speed", 1f);
         }
         else if (animator != null)
         {

@@ -1,39 +1,48 @@
 using UnityEngine;
 using Arcweave;
 using Arcweave.Project;
+using TMPro;
+using System.Collections;
 
+/// <summary>
+/// Main game manager that handles game states, UI, and player controls
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     // Singleton instance
     public static GameManager Instance { get; private set; }
     
-    // Game states
     public enum GameState
     {
-        Gameplay,
-        Dialogue
+        Gameplay,   // Normal gameplay state
+        Dialogue,   // When player is in dialogue with NPCs
+        Paused      // When game is paused (menu, settings, etc.)
     }
     
     [Header("Game State")]
     public GameState currentState = GameState.Gameplay;
+    private GameState previousState;
     
     [Header("References")]
-    public GameObject arcweaveUI;
+    public GameObject arcweaveUI;        // UI for dialogue system
+    public GameObject importerUI;        // UI for importing Arcweave projects
     public PlayerController playerController;
     public ThirdPersonCamera cameraController;
+
+    [Header("Message UI")]
+    public TextMeshProUGUI messageText;  // Text component for displaying temporary messages
+    public float messageDisplayTime = 2f; // How long messages stay on screen
     
     [Header("Dialogue Tags")]
     [Tooltip("Tag that indicates the end of dialogue")]
     public string dialogueEndTag = "dialogue_end";
-
     [Tooltip("Tag that indicates the start of dialogue")]
     public string dialogueStartTag = "dialogue_start";
     
-    // Event that other scripts can subscribe to
+    // Event for state changes that other scripts can subscribe to
     public delegate void GameStateChangedDelegate(GameState newState);
     public event GameStateChangedDelegate OnGameStateChanged;
     
-    // Currently active dialogue trigger
     private DialogueTrigger activeDialogueTrigger;
     
     private void Awake()
@@ -52,101 +61,131 @@ public class GameManager : MonoBehaviour
     
     private void Start()
     {
-        // Ensure UI is disabled at start
-        if (arcweaveUI != null)
-        {
-            arcweaveUI.SetActive(false);
-        }
-        
-        // Set initial state
+        Application.targetFrameRate = 60;
+        // Initialize UI states
+        if (arcweaveUI != null) arcweaveUI.SetActive(false);
         SetGameState(GameState.Gameplay);
+
+
     }
     
-    // Method to change game state
+    private void Update()
+    {
+        // Handle pause menu toggle with Escape or Backspace
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace))
+        {
+            TogglePause();
+        }
+    }
+    
+    /// <summary>
+    /// Toggles between pause and the previous game state
+    /// </summary>
+    private void TogglePause()
+    {
+        if (currentState == GameState.Paused)
+        {
+            SetGameState(previousState);
+        }
+        else
+        {
+            previousState = currentState;
+            SetGameState(GameState.Paused);
+        }
+    }
+    
+    /// <summary>
+    /// Changes the game state and handles all related state changes
+    /// </summary>
     public void SetGameState(GameState newState)
     {
-        // Skip if no change
         if (currentState == newState) return;
         
         currentState = newState;
         
-        // Handle state changes
         switch (newState)
         {
             case GameState.Gameplay:
                 EnableGameplayControls();
+                if (importerUI != null) importerUI.SetActive(false);
+                if (arcweaveUI != null) arcweaveUI.SetActive(false);
+                Time.timeScale = 1f;
                 break;
+            
             case GameState.Dialogue:
                 DisableGameplayControls();
+                if (importerUI != null) importerUI.SetActive(false);
+                if (arcweaveUI != null) arcweaveUI.SetActive(true);
+                Time.timeScale = 1f;
+                break;
+            
+            case GameState.Paused:
+                DisableGameplayControls();
+                if (importerUI != null) importerUI.SetActive(true);
+                // We don't pause time to allow for importing
                 break;
         }
         
-        // Notify other scripts of state change
         OnGameStateChanged?.Invoke(newState);
     }
     
-    // Enable gameplay controls
+    /// <summary>
+    /// Enables player controls and hides cursor
+    /// </summary>
     private void EnableGameplayControls()
     {
-        // Hide and lock cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         
-        // Enable player and camera controls
-        if (playerController != null)
-            playerController.enabled = true;
-            
-        if (cameraController != null)
-            cameraController.enabled = true;
-            
-        // Deactivate Arcweave UI immediately
-        if (arcweaveUI != null)
-            arcweaveUI.SetActive(false);
-            
-        // Clear current dialogue trigger reference
+        if (playerController != null) playerController.enabled = true;
+        if (cameraController != null) cameraController.enabled = true;
+        
         activeDialogueTrigger = null;
     }
     
-    // Disable gameplay controls and enable dialogue UI
+    /// <summary>
+    /// Disables player controls and shows cursor
+    /// </summary>
     private void DisableGameplayControls()
     {
-        // Show and unlock cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        // Disable player and camera controls
-        if (playerController != null)
-            playerController.enabled = false;
-            
-        if (cameraController != null)
-            cameraController.enabled = false;
-            
-        // Activate Arcweave UI
-        if (arcweaveUI != null)
-            arcweaveUI.SetActive(true);
+        if (playerController != null) playerController.enabled = false;
+        if (cameraController != null) cameraController.enabled = false;
     }
     
-    // Method to start dialogue with a specific trigger
+    #region Dialogue Management
+    
+    /// <summary>
+    /// Starts dialogue with a specific trigger
+    /// </summary>
     public void StartDialogue(DialogueTrigger trigger)
     {
         activeDialogueTrigger = trigger;
         SetGameState(GameState.Dialogue);
     }
     
-    // Method to end dialogue
+    /// <summary>
+    /// Ends current dialogue and returns to gameplay
+    /// </summary>
     public void EndDialogue()
     {
         SetGameState(GameState.Gameplay);
     }
     
-    // Get the active dialogue trigger
+    /// <summary>
+    /// Returns the currently active dialogue trigger
+    /// </summary>
     public DialogueTrigger GetActiveDialogueTrigger()
     {
         return activeDialogueTrigger;
     }
 
-    // Modifica la funzione HasDialogueEndTag per usare la variabile serializzata
-    public bool HasDialogueEndTag(Arcweave.Project.Element element)
+    /// <summary>
+    /// Checks if an Arcweave element has the dialogue end tag
+    /// </summary>
+    public bool HasDialogueEndTag(Element element)
     {
         foreach (var attribute in element.Attributes)
         {
@@ -159,7 +198,9 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    // Aggiungi questa nuova funzione
+    /// <summary>
+    /// Starts an Arcweave project from a specific tag
+    /// </summary>
     public void StartProjectFromTag(string tag, ArcweavePlayer player)
     {
         if (player == null || player.aw == null)
@@ -172,7 +213,7 @@ public class GameManager : MonoBehaviour
         {
             foreach (var node in board.Nodes)
             {
-                if (node is Arcweave.Project.Element element)
+                if (node is Element element)
                 {
                     foreach (var attribute in element.Attributes)
                     {
@@ -191,4 +232,59 @@ public class GameManager : MonoBehaviour
         Debug.LogWarning($"No element found with tag '{tag}'");
         player.PlayProject();
     }
+    
+    #endregion
+
+    #region Game State Control
+    
+    /// <summary>
+    /// Pauses the game if not already paused
+    /// </summary>
+    public void PauseGame()
+    {
+        if (currentState != GameState.Paused)
+        {
+            previousState = currentState;
+            SetGameState(GameState.Paused);
+        }
+    }
+
+    /// <summary>
+    /// Resumes the game to the previous state
+    /// </summary>
+    public void ResumeGame()
+    {
+        if (currentState == GameState.Paused)
+        {
+            SetGameState(previousState);
+        }
+    }
+    
+    #endregion
+
+    #region Message System
+    
+    /// <summary>
+    /// Shows a temporary message on screen
+    /// </summary>
+    public void ShowMessage(string message)
+    {
+        if (messageText != null)
+        {
+            messageText.text = message;
+            messageText.gameObject.SetActive(true);
+            StartCoroutine(HideMessageAfterDelay());
+        }
+    }
+
+    private IEnumerator HideMessageAfterDelay()
+    {
+        yield return new WaitForSeconds(messageDisplayTime);
+        if (messageText != null)
+        {
+            messageText.gameObject.SetActive(false);
+        }
+    }
+    
+    #endregion
 }

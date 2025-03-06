@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Arcweave.Project;
+using System.Text;
 
 namespace Arcweave
 {
@@ -16,9 +17,15 @@ namespace Arcweave
         public Button loadButton;
         public RawImage componentCover;
 
+        [Header("Variables UI")]
+        public Text variablesText;  // Reference to a Text component for displaying variables
+        public bool showVariables = true;  // Toggle to enable/disable variables display
+        public float variableUpdateInterval = 0.5f;  // How often to update variables display
+
         private const float CROSSFADE_TIME = 0.3f;
         private List<Button> tempButtons = new List<Button>();
         private bool isDialogueEndElement = false;
+        private float nextVariableUpdate = 0f;
 
         void OnEnable() {
             // Initialize UI elements
@@ -37,14 +44,38 @@ namespace Arcweave
             player.onElementOptions += OnElementOptions;
             player.onWaitInputNext += OnWaitInputNext;
             player.onProjectFinish += OnProjectFinish;
+
+            // Initialize variables display
+            if (variablesText != null)
+                UpdateVariablesDisplay();
         }
 
-        void OnDisable() {
-            // Unsubscribe from events
-            player.onElementEnter -= OnElementEnter;
-            player.onElementOptions -= OnElementOptions;
-            player.onWaitInputNext -= OnWaitInputNext;
-            player.onProjectFinish -= OnProjectFinish;
+        void Update()
+        {
+            // Update variables display periodically
+            if (showVariables && variablesText != null && Time.time >= nextVariableUpdate)
+            {
+                UpdateVariablesDisplay();
+                nextVariableUpdate = Time.time + variableUpdateInterval;
+            }
+        }
+
+        private void UpdateVariablesDisplay()
+        {
+            if (player?.aw?.Project == null) return;
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Variables:");
+
+            foreach (var variable in player.aw.Project.Variables)
+            {
+                if (variable != null)
+                {
+                    sb.AppendLine($"{variable.Name}: {variable.Value}");
+                }
+            }
+
+            variablesText.text = sb.ToString();
         }
 
         void Save() {
@@ -61,9 +92,6 @@ namespace Arcweave
             // Clear any existing buttons before processing new element
             ClearTempButtons();
             
-            // Reset component cover visibility
-            componentCover.gameObject.SetActive(false);
-            
             // Set up content text
             content.text = "<i>[ No Content ]</i>";
             if (element.HasContent())
@@ -76,28 +104,32 @@ namespace Arcweave
             content.canvasRenderer.SetAlpha(0);
             content.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
 
-            // Handle cover image
+            /* Temporarily disabled main cover image handling
+            // Handle main cover image
             var image = element.GetCoverOrFirstComponentImage();
-            if (cover.texture != image && image != null) {
+            if (image != null) {
+                cover.gameObject.SetActive(true);
                 cover.texture = image;
                 cover.canvasRenderer.SetAlpha(0);
                 cover.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-            }
-            if (image == null) {
+            } else {
                 cover.canvasRenderer.SetAlpha(1);
                 cover.CrossFadeAlpha(0f, CROSSFADE_TIME, false);
+                cover.gameObject.SetActive(false);
             }
+            */
 
             // Handle component cover image
             var compImage = element.GetFirstComponentCoverImage();
-            if (componentCover.texture != compImage && compImage != null) {
+            if (compImage != null) {
+                componentCover.gameObject.SetActive(true);
                 componentCover.texture = compImage;
                 componentCover.canvasRenderer.SetAlpha(0);
                 componentCover.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-            }
-            if (compImage == null) {
+            } else {
                 componentCover.canvasRenderer.SetAlpha(1);
                 componentCover.CrossFadeAlpha(0f, CROSSFADE_TIME, false);
+                componentCover.gameObject.SetActive(false);
             }
             
             // Check if current element has the dialogue_end tag
