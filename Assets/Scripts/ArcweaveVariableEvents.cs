@@ -16,9 +16,13 @@ public class ArcweaveVariableEvents : MonoBehaviour
     public float maxHealth = 100f;              // Maximum health value
     public bool faceCamera = true;              // Whether the UI should face the camera
 
+    [Header("Object Activation")]
+    public GameObject targetObject;           // GameObject to activate/deactivate based on variable
+    public string activationVariableName = "activateObject"; // Name of the boolean variable in Arcweave
+
     private void Start()
     {
-        arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+        arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
         animator = GetComponent<Animator>();
 
         if (healthBar != null)
@@ -29,6 +33,11 @@ public class ArcweaveVariableEvents : MonoBehaviour
         else
         {
             Debug.LogWarning("Health bar not assigned! Please assign a UI Slider in the inspector.");
+        }
+
+        if (targetObject == null)
+        {
+            Debug.LogWarning("Target object not assigned! Please assign a GameObject in the inspector.");
         }
     }
 
@@ -43,6 +52,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
         }
 
         UpdateHealthFromVariable();
+        UpdateObjectActivation();
     }
 
     private void UpdateHealthFromVariable()
@@ -88,13 +98,55 @@ public class ArcweaveVariableEvents : MonoBehaviour
                 // Update animator parameter if needed
                 if (animator != null)
                 {
-                    animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
+                    // Check if the animator has the "Healthy" parameter
+                    AnimatorControllerParameter[] parameters = animator.parameters;
+                    bool hasHealthyParameter = false;
+                    
+                    foreach (AnimatorControllerParameter param in parameters)
+                    {
+                        if (param.name == "Healthy" && param.type == AnimatorControllerParameterType.Bool)
+                        {
+                            hasHealthyParameter = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasHealthyParameter)
+                    {
+                        animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
+                    }
                 }
             }
         }
         catch (System.Exception e)
         {
             Debug.LogWarning($"Error updating health: {e.Message}");
+        }
+    }
+
+    private void UpdateObjectActivation()
+    {
+        // Skip if object not assigned
+        if (targetObject == null) return;
+
+        try
+        {
+            var activationVar = arcweavePlayer.aw.Project.GetVariable(activationVariableName);
+            if (activationVar != null && activationVar.Type == typeof(bool))
+            {
+                bool shouldActivate = !(bool)activationVar.Value; // Invert logic: if variable is true, deactivate object
+                
+                // Only update if state changed
+                if (targetObject.activeSelf != shouldActivate)
+                {
+                    targetObject.SetActive(shouldActivate);
+                    Debug.Log($"Object '{targetObject.name}' {(shouldActivate ? "activated" : "deactivated")} based on variable '{activationVariableName}'");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"Error updating object activation: {e.Message}");
         }
     }
 }
