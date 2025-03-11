@@ -13,6 +13,7 @@ namespace Arcweave
         public delegate void OnElementEnter(Element element);
         public delegate void OnElementOptions(Options options, System.Action<int> next);
         public delegate void OnWaitingInputNext(System.Action next);
+        public delegate void OnProjectUpdated(Project.Project project);
 
         public const string SAVE_KEY = "arcweave_save";
 
@@ -28,6 +29,7 @@ namespace Arcweave
         public event OnElementEnter onElementEnter;
         public event OnElementOptions onElementOptions;
         public event OnWaitingInputNext onWaitInputNext;
+        public event OnProjectUpdated onProjectUpdated;
 
         //...
         void Start() { if ( autoStart ) PlayProject(); }
@@ -65,6 +67,8 @@ namespace Arcweave
             if (onProjectStart != null) onProjectStart(aw.Project);
             
             Next(startingElement);
+
+            if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
 
         private Element FindStartingElement() {

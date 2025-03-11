@@ -15,6 +15,9 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     public string apiKey;
     public string projectHash;
 
+    [Header("Particle System Control")]
+    public ParticleSystemController particleSystemController; // Riferimento al controller del Particle System
+
     private bool isImporting = false;
 
     private void Start()
@@ -64,6 +67,9 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             {
                 Debug.Log("Project imported successfully!");
                 onImportSuccess?.Invoke();
+                
+                // Aggiorna il Particle System dopo l'importazione
+                UpdateParticleSystem();
             }
             else
             {
@@ -71,6 +77,18 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 onImportFailed?.Invoke();
             }
         });
+    }
+
+    private void UpdateParticleSystem()
+    {
+        if (particleSystemController != null)
+        {
+            particleSystemController.UpdateParticleSystem();
+        }
+        else
+        {
+            Debug.LogWarning("ParticleSystemController non assegnato!");
+        }
     }
 
     // Metodi di utility per UI
@@ -99,7 +117,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 Debug.Log("Project imported successfully!");
                 
                 // Trova e reinizializza l'ArcweavePlayer
-                var player = FindObjectOfType<ArcweavePlayer>();
+                var player = FindAnyObjectByType<ArcweavePlayer>();
                 if (player != null)
                 {
                     // Resetta le variabili e reinizializza il progetto
@@ -112,6 +130,20 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                     {
                         GameManager.Instance.ResumeGame();
                     }
+                }
+                
+                // Aggiorna il Particle System dopo l'importazione
+                UpdateParticleSystem();
+                
+                // Notifica l'aggiornamento delle variabili
+                var variableEvents = FindAnyObjectByType<ArcweaveVariableEvents>();
+                if (variableEvents != null)
+                {
+                    // Resetta la condizione di disattivazione permanente prima di aggiornare le variabili
+                    variableEvents.ResetObjectActivation();
+                    variableEvents.UpdateSliderColor();
+                    variableEvents.UpdateHealthFromVariable();
+                    variableEvents.UpdateObjectActivation();
                 }
                 
                 onImportSuccess?.Invoke();

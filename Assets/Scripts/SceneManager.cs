@@ -10,6 +10,10 @@ public class SceneInitializer : MonoBehaviour
     [Header("Component Settings")]
     public string componentName = "SceneManager";
     public string attributeName = "Time"; // Usiamo direttamente l'attributo "Time"
+    
+    [Header("Particle System Settings")]
+    public ParticleSystem targetParticleSystem;
+    public string particleControlAttribute = "ParticleState"; // Nome dell'attributo che controlla il Particle System
 
     private void Start()
     {
@@ -24,6 +28,7 @@ public class SceneInitializer : MonoBehaviour
         }
 
         FindComponentAndAttribute();
+        ControlParticleSystem();
     }
 
     private void FindComponentAndAttribute()
@@ -106,5 +111,53 @@ public class SceneInitializer : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void ControlParticleSystem()
+    {
+        if (targetParticleSystem == null)
+        {
+            Debug.LogWarning("Nessun Particle System assegnato!");
+            return;
+        }
+
+        var component = FindComponentByName(componentName);
+        if (component == null)
+        {
+            Debug.LogWarning($"Component '{componentName}' non trovato!");
+            return;
+        }
+
+        var particleAttribute = FindAttributeByName(component, particleControlAttribute);
+        if (particleAttribute == null)
+        {
+            Debug.LogWarning($"Attribute '{particleControlAttribute}' non trovato!");
+            return;
+        }
+
+        string particleState = particleAttribute.data?.ToString();
+        if (string.IsNullOrEmpty(particleState))
+        {
+            Debug.LogError($"Valore dell'attributo '{particleControlAttribute}' vuoto o non valido!");
+            return;
+        }
+
+        // Controlla il Particle System in base al valore dell'attributo
+        if (particleState.ToLower() == "true" || particleState == "1")
+        {
+            if (!targetParticleSystem.isPlaying)
+            {
+                targetParticleSystem.Play();
+            }
+        }
+        else
+        {
+            if (targetParticleSystem.isPlaying)
+            {
+                targetParticleSystem.Stop();
+            }
+        }
+
+        Debug.Log($"Particle System stato: {targetParticleSystem.isPlaying}");
     }
 } 

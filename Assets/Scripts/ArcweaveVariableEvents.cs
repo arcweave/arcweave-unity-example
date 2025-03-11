@@ -19,11 +19,29 @@ public class ArcweaveVariableEvents : MonoBehaviour
     [Header("Object Activation")]
     public GameObject targetObject;           // GameObject to activate/deactivate based on variable
     public string activationVariableName = "activateObject"; // Name of the boolean variable in Arcweave
+    private bool objectPermanentlyDeactivated = false; // Aggiungi questa variabile
+
+    [Header("Slider Color Settings")]
+    [Tooltip("The name of the Arcweave component to search for")]
+    public string sliderColorComponentName = "UI Settings";
+    [Tooltip("The name of the attribute for slider color")]
+    public string sliderColorAttribute = "SliderColor";
 
     private void Start()
     {
         arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
         animator = GetComponent<Animator>();
+
+        if (arcweavePlayer != null)
+        {
+            arcweavePlayer.onProjectFinish += OnProjectFinish;
+        }
+
+        var importer = FindObjectOfType<RuntimeArcweaveImporter>();
+        if (importer != null)
+        {
+            importer.onImportSuccess.AddListener(OnImportSuccess);
+        }
 
         if (healthBar != null)
         {
@@ -38,6 +56,35 @@ public class ArcweaveVariableEvents : MonoBehaviour
         if (targetObject == null)
         {
             Debug.LogWarning("Target object not assigned! Please assign a GameObject in the inspector.");
+        }
+
+        // Initialize slider color
+        UpdateSliderColor();
+    }
+
+    private void OnImportSuccess()
+    {
+        UpdateSliderColor();
+        UpdateHealthFromVariable();
+    }
+
+    private void OnProjectFinish(Arcweave.Project.Project project)
+    {
+        UpdateSliderColor();
+        UpdateHealthFromVariable();
+    }
+
+    private void OnDestroy()
+    {
+        if (arcweavePlayer != null)
+        {
+            arcweavePlayer.onProjectFinish -= OnProjectFinish;
+        }
+
+        var importer = FindObjectOfType<RuntimeArcweaveImporter>();
+        if (importer != null)
+        {
+            importer.onImportSuccess.RemoveListener(OnImportSuccess);
         }
     }
 
@@ -55,7 +102,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
         UpdateObjectActivation();
     }
 
-    private void UpdateHealthFromVariable()
+    public void UpdateHealthFromVariable()
     {
         try
         {
@@ -85,24 +132,22 @@ public class ArcweaveVariableEvents : MonoBehaviour
                 currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
                 if (healthBar != null)
                 {
-                    healthBar.value = Mathf.Lerp(healthBar.value, currentHealth, Time.deltaTime * 5f);
+                    healthBar.value = currentHealth; // Rimuovi l'interpolazione per aggiornamento immediato
                 }
 
                 // Update health text
                 if (healthText != null)
                 {
                     healthText.text = $"{Mathf.RoundToInt(currentHealth)}";
-                    healthText.transform.rotation = healthBar.transform.rotation; // Make text face camera too
+                    healthText.transform.rotation = healthBar.transform.rotation;
                 }
 
                 // Update animator parameter if needed
                 if (animator != null)
                 {
-                    // Check if the animator has the "Healthy" parameter
-                    AnimatorControllerParameter[] parameters = animator.parameters;
+                    // Verifica se il parametro "Healthy" esiste
                     bool hasHealthyParameter = false;
-                    
-                    foreach (AnimatorControllerParameter param in parameters)
+                    foreach (AnimatorControllerParameter param in animator.parameters)
                     {
                         if (param.name == "Healthy" && param.type == AnimatorControllerParameterType.Bool)
                         {
@@ -110,7 +155,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
                             break;
                         }
                     }
-                    
+
                     if (hasHealthyParameter)
                     {
                         animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
@@ -124,7 +169,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
         }
     }
 
-    private void UpdateObjectActivation()
+    public void UpdateObjectActivation()
     {
         // Skip if object not assigned
         if (targetObject == null) return;
@@ -136,11 +181,23 @@ public class ArcweaveVariableEvents : MonoBehaviour
             {
                 bool shouldActivate = !(bool)activationVar.Value; // Invert logic: if variable is true, deactivate object
                 
+                // Se la condizione è stata resettata, forziamo l'aggiornamento
+                if (objectPermanentlyDeactivated && shouldActivate)
+                {
+                    objectPermanentlyDeactivated = false;
+                }
+
                 // Only update if state changed
-                if (targetObject.activeSelf != shouldActivate)
+                if (targetObject.activeSelf != shouldActivate && !objectPermanentlyDeactivated)
                 {
                     targetObject.SetActive(shouldActivate);
                     Debug.Log($"Object '{targetObject.name}' {(shouldActivate ? "activated" : "deactivated")} based on variable '{activationVariableName}'");
+
+                    // Se l'oggetto viene disattivato, impostiamo il flag per mantenerlo disattivato
+                    if (!shouldActivate)
+                    {
+                        objectPermanentlyDeactivated = true;
+                    }
                 }
             }
         }
@@ -148,5 +205,84 @@ public class ArcweaveVariableEvents : MonoBehaviour
         {
             Debug.LogWarning($"Error updating object activation: {e.Message}");
         }
+    }
+
+    public void UpdateSliderColor()
+    {
+        if (arcweavePlayer == null || arcweavePlayer.aw == null || arcweavePlayer.aw.Project == null)
+        {
+            Debug.LogError("Arcweave project not initialized or invalid object!");
+            return;
+        }
+
+        // Find the component
+        var component = FindComponentByName(sliderColorComponentName);
+        if (component == null)
+        {
+            Debug.LogWarning($"Component '{sliderColorComponentName}' not found!");
+            return;
+        }
+
+        // Find the attribute
+        var colorAttribute = FindAttributeByName(component, sliderColorAttribute);
+        if (colorAttribute != null)
+        {
+            string colorHex = colorAttribute.data?.ToString();
+            if (!string.IsNullOrEmpty(colorHex) && ColorUtility.TryParseHtmlString(colorHex, out Color color))
+            {
+                if (healthBar != null && healthBar.fillRect != null)
+                {
+                    healthBar.fillRect.GetComponent<Image>().color = color;
+                    Debug.Log($"Health bar color set to: {colorHex}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid color value: {colorHex}");
+            }
+        }
+    }
+
+    private Arcweave.Project.Component FindComponentByName(string name)
+    {
+        if (arcweavePlayer?.aw?.Project == null)
+        {
+            Debug.LogError("Arcweave project not initialized!");
+            return null;
+        }
+
+        foreach (var component in arcweavePlayer.aw.Project.components)
+        {
+            if (component != null && component.Name == name)
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    private Arcweave.Project.Attribute FindAttributeByName(Arcweave.Project.Component component, string attributeName)
+    {
+        if (component == null || component.Attributes == null)
+        {
+            return null;
+        }
+
+        foreach (var attribute in component.Attributes)
+        {
+            if (attribute != null && attribute.Name == attributeName)
+            {
+                return attribute;
+            }
+        }
+
+        return null;
+    }
+
+    public void ResetObjectActivation()
+    {
+        objectPermanentlyDeactivated = false;
+        Debug.Log("Object activation condition reset.");
     }
 }
