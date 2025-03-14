@@ -39,6 +39,17 @@ namespace Arcweave
             }
         }
 
+        ///<summary>Import project directly from a JSON string and get callback when finished.</summary>
+        public void MakeProjectFromJson(string jsonContent, System.Action callback = null) {
+            if (string.IsNullOrEmpty(jsonContent)) {
+                Debug.LogError("JSON content is empty or null");
+                if (callback != null) { callback(); }
+                return;
+            }
+            
+            MakeProject(jsonContent, callback);
+        }
+
         //...
         async void MakeProject(string json, System.Action callback) {
             Project.ProjectMaker maker = null;
