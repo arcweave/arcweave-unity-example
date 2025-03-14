@@ -3,23 +3,26 @@ using Arcweave;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// Connects Arcweave variables to Unity game objects and UI elements
+/// </summary>
 public class ArcweaveVariableEvents : MonoBehaviour
 {
     [Header("References")]
-    private ArcweavePlayer arcweavePlayer;
+    public ArcweavePlayer arcweavePlayer;
     private Animator animator;
 
     [Header("Health UI")]
-    public Slider healthBar;                     // Reference to UI Slider
-    public TextMeshProUGUI healthText;          // Reference to health text
-    public string healthVariableName = "health"; // Name of the health variable in Arcweave
-    public float maxHealth = 100f;              // Maximum health value
-    public bool faceCamera = true;              // Whether the UI should face the camera
+    public Slider healthBar;
+    public TextMeshProUGUI healthText;
+    public string healthVariableName = "health";
+    public float maxHealth = 100f;
+    public bool faceCamera = true;
 
     [Header("Object Activation")]
-    public GameObject targetObject;           // GameObject to activate/deactivate based on variable
-    public string activationVariableName = "activateObject"; // Name of the boolean variable in Arcweave
-    private bool objectPermanentlyDeactivated = false; // Aggiungi questa variabile
+    public GameObject targetObject;
+    public string activationVariableName = "activateObject";
+    private bool objectPermanentlyDeactivated = false;
 
     [Header("Slider Color Settings")]
     [Tooltip("The name of the Arcweave component to search for")]
@@ -29,9 +32,19 @@ public class ArcweaveVariableEvents : MonoBehaviour
 
     private void Start()
     {
-        arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
+        // Find references if not assigned
+        if (arcweavePlayer == null)
+        {
+            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            if (arcweavePlayer == null)
+            {
+                Debug.LogWarning("ArcweavePlayer not found in scene!");
+            }
+        }
+        
         animator = GetComponent<Animator>();
 
+        // Set up event listeners
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
@@ -43,16 +56,10 @@ public class ArcweaveVariableEvents : MonoBehaviour
             importer.onImportSuccess.AddListener(OnImportSuccess);
         }
 
-        if (healthBar != null)
-        {
-            healthBar.maxValue = maxHealth;
-            healthBar.value = maxHealth;
-        }
-        else
-        {
-            Debug.LogWarning("Health bar not assigned! Please assign a UI Slider in the inspector.");
-        }
-
+        // Initialize UI elements
+        SetupHealthBar();
+        
+        // Log warnings for missing references
         if (targetObject == null)
         {
             Debug.LogWarning("Target object not assigned! Please assign a GameObject in the inspector.");
@@ -62,20 +69,45 @@ public class ArcweaveVariableEvents : MonoBehaviour
         UpdateSliderColor();
     }
 
+    /// <summary>
+    /// Sets up the health bar with initial values
+    /// </summary>
+    private void SetupHealthBar()
+    {
+        if (healthBar != null)
+        {
+            healthBar.maxValue = maxHealth;
+            healthBar.value = maxHealth;
+        }
+        else
+        {
+            Debug.LogWarning("Health bar not assigned! Please assign a UI Slider in the inspector.");
+        }
+    }
+
+    /// <summary>
+    /// Called when a new project is imported successfully
+    /// </summary>
     private void OnImportSuccess()
     {
         UpdateSliderColor();
         UpdateHealthFromVariable();
+        UpdateObjectActivation();
     }
 
+    /// <summary>
+    /// Called when an Arcweave project finishes
+    /// </summary>
     private void OnProjectFinish(Arcweave.Project.Project project)
     {
         UpdateSliderColor();
         UpdateHealthFromVariable();
+        UpdateObjectActivation();
     }
 
     private void OnDestroy()
     {
+        // Clean up event listeners
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
@@ -93,111 +125,145 @@ public class ArcweaveVariableEvents : MonoBehaviour
         if (arcweavePlayer?.aw?.Project == null) return;
 
         // Update UI rotation to face camera
-        if (faceCamera && healthBar != null && Camera.main != null)
-        {
-            healthBar.transform.rotation = Camera.main.transform.rotation;
-        }
-
+        UpdateHealthBarRotation();
+        
+        // Update gameplay elements from variables
         UpdateHealthFromVariable();
         UpdateObjectActivation();
     }
 
+    /// <summary>
+    /// Updates health bar rotation to face camera
+    /// </summary>
+    private void UpdateHealthBarRotation()
+    {
+        if (!faceCamera || healthBar == null || Camera.main == null) return;
+        
+        healthBar.transform.rotation = Camera.main.transform.rotation;
+    }
+
+    /// <summary>
+    /// Updates health bar and text from Arcweave variable
+    /// </summary>
     public void UpdateHealthFromVariable()
     {
+        if (arcweavePlayer?.aw?.Project == null) return;
+        
         try
         {
             var healthVar = arcweavePlayer.aw.Project.GetVariable(healthVariableName);
-            if (healthVar != null)
-            {
-                float currentHealth = 0f;
-
-                // Convert variable to float based on its type
-                if (healthVar.Type == typeof(int))
-                {
-                    currentHealth = (int)healthVar.Value;
-                }
-                else if (healthVar.Type == typeof(float))
-                {
-                    currentHealth = (float)healthVar.Value;
-                }
-                else if (healthVar.Type == typeof(string))
-                {
-                    if (float.TryParse(healthVar.Value.ToString(), out float parsedHealth))
-                    {
-                        currentHealth = parsedHealth;
-                    }
-                }
-
-                // Update health bar with smooth transition
-                currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-                if (healthBar != null)
-                {
-                    healthBar.value = currentHealth; // Rimuovi l'interpolazione per aggiornamento immediato
-                }
-
-                // Update health text
-                if (healthText != null)
-                {
-                    healthText.text = $"{Mathf.RoundToInt(currentHealth)}";
-                    healthText.transform.rotation = healthBar.transform.rotation;
-                }
-
-                // Update animator parameter if needed
-                if (animator != null)
-                {
-                    // Verifica se il parametro "Healthy" esiste
-                    bool hasHealthyParameter = false;
-                    foreach (AnimatorControllerParameter param in animator.parameters)
-                    {
-                        if (param.name == "Healthy" && param.type == AnimatorControllerParameterType.Bool)
-                        {
-                            hasHealthyParameter = true;
-                            break;
-                        }
-                    }
-
-                    if (hasHealthyParameter)
-                    {
-                        animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
-                    }
-                }
-            }
+            if (healthVar == null) return;
+            
+            float currentHealth = ConvertToFloat(healthVar.Value, healthVar.Type);
+            currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+            
+            // Update health bar UI
+            UpdateHealthUI(currentHealth);
+            
+            // Update animator parameter if needed
+            UpdateHealthAnimator(currentHealth);
         }
         catch (System.Exception e)
         {
             Debug.LogWarning($"Error updating health: {e.Message}");
         }
     }
+    
+    /// <summary>
+    /// Converts a variable's value to float based on its type
+    /// </summary>
+    private float ConvertToFloat(object value, System.Type type)
+    {
+        if (type == typeof(int))
+            return (int)value;
+        else if (type == typeof(float))
+            return (float)value;
+        else if (type == typeof(string) && float.TryParse(value.ToString(), out float parsedValue))
+            return parsedValue;
+            
+        return 0f;
+    }
+    
+    /// <summary>
+    /// Updates health UI elements with current health value
+    /// </summary>
+    private void UpdateHealthUI(float currentHealth)
+    {
+        // Update health bar
+        if (healthBar != null)
+        {
+            healthBar.value = currentHealth;
+        }
 
+        // Update health text
+        if (healthText != null)
+        {
+            healthText.text = $"{Mathf.RoundToInt(currentHealth)}";
+            
+            if (healthBar != null)
+            {
+                healthText.transform.rotation = healthBar.transform.rotation;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Updates animator parameters based on health value
+    /// </summary>
+    private void UpdateHealthAnimator(float currentHealth)
+    {
+        if (animator == null) return;
+        
+        // Check if the "Healthy" parameter exists
+        bool hasHealthyParameter = false;
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == "Healthy" && param.type == AnimatorControllerParameterType.Bool)
+            {
+                hasHealthyParameter = true;
+                break;
+            }
+        }
+
+        if (hasHealthyParameter)
+        {
+            // Set Healthy to true if health is above 40% of max
+            animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
+        }
+    }
+
+    /// <summary>
+    /// Updates game object activation based on Arcweave variable
+    /// </summary>
     public void UpdateObjectActivation()
     {
         // Skip if object not assigned
-        if (targetObject == null) return;
+        if (targetObject == null || arcweavePlayer?.aw?.Project == null) return;
 
         try
         {
             var activationVar = arcweavePlayer.aw.Project.GetVariable(activationVariableName);
-            if (activationVar != null && activationVar.Type == typeof(bool))
+            if (activationVar == null || activationVar.Type != typeof(bool)) return;
+            
+            // Invert logic: if variable is true, deactivate object
+            bool shouldActivate = !(bool)activationVar.Value;
+            
+            // If condition was reset, force an update
+            if (objectPermanentlyDeactivated && shouldActivate)
             {
-                bool shouldActivate = !(bool)activationVar.Value; // Invert logic: if variable is true, deactivate object
-                
-                // Se la condizione è stata resettata, forziamo l'aggiornamento
-                if (objectPermanentlyDeactivated && shouldActivate)
-                {
-                    objectPermanentlyDeactivated = false;
-                }
+                objectPermanentlyDeactivated = false;
+            }
 
-                // Only update if state changed
-                if (targetObject.activeSelf != shouldActivate && !objectPermanentlyDeactivated)
-                {
-                    targetObject.SetActive(shouldActivate);
-                    Debug.Log($"Object '{targetObject.name}' {(shouldActivate ? "activated" : "deactivated")} based on variable '{activationVariableName}'");
+            // Only update if state changed
+            if (targetObject.activeSelf != shouldActivate && !objectPermanentlyDeactivated)
+            {
+                targetObject.SetActive(shouldActivate);
+                Debug.Log($"Object '{targetObject.name}' {(shouldActivate ? "activated" : "deactivated")} based on variable '{activationVariableName}'");
 
-                    // Se l'oggetto viene disattivato, impostiamo il flag per mantenerlo disattivato
-                    if (!shouldActivate)
-                    {
-                        objectPermanentlyDeactivated = true;
-                    }
+                // If object is deactivated, set flag to keep it deactivated
+                if (!shouldActivate)
+                {
+                    objectPermanentlyDeactivated = true;
                 }
             }
         }
@@ -207,13 +273,20 @@ public class ArcweaveVariableEvents : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Reset any permanent deactivation flags
+    /// </summary>
+    public void ResetObjectActivation()
+    {
+        objectPermanentlyDeactivated = false;
+    }
+
+    /// <summary>
+    /// Updates slider color based on Arcweave component attribute
+    /// </summary>
     public void UpdateSliderColor()
     {
-        if (arcweavePlayer == null || arcweavePlayer.aw == null || arcweavePlayer.aw.Project == null)
-        {
-            Debug.LogError("Arcweave project not initialized or invalid object!");
-            return;
-        }
+        if (arcweavePlayer?.aw?.Project == null || healthBar == null || healthBar.fillRect == null) return;
 
         // Find the component
         var component = FindComponentByName(sliderColorComponentName);
@@ -225,31 +298,26 @@ public class ArcweaveVariableEvents : MonoBehaviour
 
         // Find the attribute
         var colorAttribute = FindAttributeByName(component, sliderColorAttribute);
-        if (colorAttribute != null)
+        if (colorAttribute == null) return;
+        
+        string colorHex = colorAttribute.data?.ToString();
+        if (!string.IsNullOrEmpty(colorHex) && ColorUtility.TryParseHtmlString(colorHex, out Color color))
         {
-            string colorHex = colorAttribute.data?.ToString();
-            if (!string.IsNullOrEmpty(colorHex) && ColorUtility.TryParseHtmlString(colorHex, out Color color))
-            {
-                if (healthBar != null && healthBar.fillRect != null)
-                {
-                    healthBar.fillRect.GetComponent<Image>().color = color;
-                    Debug.Log($"Health bar color set to: {colorHex}");
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"Invalid color value: {colorHex}");
-            }
+            healthBar.fillRect.GetComponent<Image>().color = color;
+            Debug.Log($"Health bar color set to: {colorHex}");
+        }
+        else
+        {
+            Debug.LogWarning($"Invalid color value: {colorHex}");
         }
     }
 
+    /// <summary>
+    /// Finds an Arcweave component by name
+    /// </summary>
     private Arcweave.Project.Component FindComponentByName(string name)
     {
-        if (arcweavePlayer?.aw?.Project == null)
-        {
-            Debug.LogError("Arcweave project not initialized!");
-            return null;
-        }
+        if (arcweavePlayer?.aw?.Project == null) return null;
 
         foreach (var component in arcweavePlayer.aw.Project.components)
         {
@@ -262,12 +330,12 @@ public class ArcweaveVariableEvents : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Finds an attribute in a component by name
+    /// </summary>
     private Arcweave.Project.Attribute FindAttributeByName(Arcweave.Project.Component component, string attributeName)
     {
-        if (component == null || component.Attributes == null)
-        {
-            return null;
-        }
+        if (component?.Attributes == null) return null;
 
         foreach (var attribute in component.Attributes)
         {
@@ -278,11 +346,5 @@ public class ArcweaveVariableEvents : MonoBehaviour
         }
 
         return null;
-    }
-
-    public void ResetObjectActivation()
-    {
-        objectPermanentlyDeactivated = false;
-        Debug.Log("Object activation condition reset.");
     }
 }

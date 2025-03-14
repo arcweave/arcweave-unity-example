@@ -1,18 +1,24 @@
 using UnityEngine;
 
+/// <summary>
+/// Third person camera controller that follows a target and rotates with mouse input
+/// </summary>
 public class ThirdPersonCamera : MonoBehaviour
 {
-    [Header("Camera Settings")]
-    public Transform target;          // Il target che la camera segue (CameraTarget)
-    public float distance = 5.0f;     // Distanza della camera dal target
-    public float height = 2.0f;       // Altezza della camera rispetto al target
-    public float smoothSpeed = 10.0f; // Velocità di lerp per il movimento fluido
+    [Header("Target Settings")]
+    public Transform target;
+    
+    [Header("Position Settings")]
+    public float distance = 5.0f;
+    public float height = 2.0f;
+    public float smoothSpeed = 10.0f;
 
-    [Header("Camera Controls")]
+    [Header("Rotation Settings")]
     public float mouseSensitivity = 3.0f;
     public float minVerticalAngle = -30.0f;
     public float maxVerticalAngle = 60.0f;
 
+    // Camera rotation state
     private float rotationX = 0f;
     private float rotationY = 0f;
 
@@ -20,10 +26,10 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (target == null)
         {
-            Debug.LogError("Camera target not assigned. Please assign a target in the inspector.");
+            Debug.LogWarning("Camera target not assigned!");
         }
         
-        // Inizializza la rotazione Y in base alla rotazione iniziale
+        // Initialize rotation Y based on initial rotation
         rotationY = transform.eulerAngles.y;
         
         // Opzionale: nascondi e blocca il cursore
@@ -33,25 +39,47 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        if (target == null)
-            return;
+        if (target == null) return;
 
-        // Controlla l'input del mouse per la rotazione della camera
+        UpdateCameraRotation();
+        UpdateCameraPosition();
+    }
+
+    /// <summary>
+    /// Update camera rotation based on mouse input
+    /// </summary>
+    private void UpdateCameraRotation()
+    {
+        // Get mouse input for rotation
         rotationX += -Input.GetAxis("Mouse Y") * mouseSensitivity;
         rotationY += Input.GetAxis("Mouse X") * mouseSensitivity;
         
-        // Limita l'angolo verticale
+        // Clamp vertical rotation angle
         rotationX = Mathf.Clamp(rotationX, minVerticalAngle, maxVerticalAngle);
-        
-        // Calcola la rotazione della camera
+    }
+
+    /// <summary>
+    /// Update camera position based on target position and rotation
+    /// </summary>
+    private void UpdateCameraPosition()
+    {
+        // Calculate rotation
         Quaternion rotation = Quaternion.Euler(rotationX, rotationY, 0);
         
-        // Calcola la posizione della camera
-        Vector3 negDistance = new Vector3(0.0f, height, -distance);
-        Vector3 position = rotation * negDistance + target.position;
+        // Calculate position with offset for distance and height
+        Vector3 offsetPosition = new Vector3(0.0f, height, -distance);
+        Vector3 position = rotation * offsetPosition + target.position;
         
-        // Applica posizione e rotazione in modo fluido
-        transform.position = Vector3.Lerp(transform.position, position, smoothSpeed * Time.deltaTime);
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, smoothSpeed * Time.deltaTime);
+        // Apply position and rotation with smooth interpolation
+        transform.position = Vector3.Lerp(
+            transform.position, 
+            position, 
+            smoothSpeed * Time.deltaTime
+        );
+        transform.rotation = Quaternion.Lerp(
+            transform.rotation, 
+            rotation, 
+            smoothSpeed * Time.deltaTime
+        );
     }
 }

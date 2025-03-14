@@ -22,6 +22,7 @@ namespace Arcweave
         public bool autoStart = true;
 
         private Element currentElement;
+        private bool isInitialized = false;
 
         //events that that UI (or otherwise) can subscribe to get notified and act accordingly.
         public event OnProjectStart onProjectStart;
@@ -31,35 +32,75 @@ namespace Arcweave
         public event OnWaitingInputNext onWaitInputNext;
         public event OnProjectUpdated onProjectUpdated;
 
-        //...
-        void Start() { if ( autoStart ) PlayProject(); }
+        void Awake()
+        {
+            // Ensure we have a valid project asset
+            if (aw == null)
+            {
+                Debug.LogError("No Arcweave Project Asset assigned to ArcweavePlayer");
+            }
+        }
 
-        //...
-        public void PlayProject() {
-            if (aw == null) {
+        void Start() 
+        { 
+            if (autoStart) PlayProject(); 
+        }
+
+        /// <summary>
+        /// Initialize the project if not already initialized
+        /// </summary>
+        public void EnsureInitialized()
+        {
+            if (isInitialized) return;
+            
+            if (aw == null || aw.Project == null)
+            {
+                Debug.LogError("Cannot initialize Arcweave project - missing project asset");
+                return;
+            }
+            
+            // Initialize the project
+            aw.Project.Initialize();
+            
+            // Load saved variables if they exist
+            if (PlayerPrefs.HasKey(SAVE_KEY + "_variables"))
+            {
+                var variables = PlayerPrefs.GetString(SAVE_KEY + "_variables");
+                Debug.Log($"Loading variables: {variables}");
+                aw.Project.LoadVariables(variables);
+                
+                // Verify variables were loaded correctly
+                var currentVars = aw.Project.SaveVariables();
+                Debug.Log($"Current variables after loading: {currentVars}");
+            }
+            else
+            {
+                Debug.Log("No saved variables found");
+            }
+            
+            isInitialized = true;
+            
+            if (onProjectUpdated != null) onProjectUpdated(aw.Project);
+        }
+
+        /// <summary>
+        /// Play the Arcweave project from the beginning
+        /// </summary>
+        public void PlayProject() 
+        {
+            if (aw == null) 
+            {
                 Debug.LogError("There is no Arcweave Project assigned in the inspector of Arcweave Player");
                 return;
             }
 
-            // Prima inizializziamo il progetto
-            aw.Project.Initialize();
-            
-            // Poi carichiamo le variabili salvate se esistono
-            if (PlayerPrefs.HasKey(SAVE_KEY + "_variables")) {
-                var variables = PlayerPrefs.GetString(SAVE_KEY + "_variables");
-                Debug.Log($"Loading variables: {variables}"); // Debug log
-                aw.Project.LoadVariables(variables);
-                
-                // Verifichiamo che le variabili siano state caricate correttamente
-                var currentVars = aw.Project.SaveVariables();
-                Debug.Log($"Current variables after loading: {currentVars}"); // Debug log
-            } else {
-                Debug.Log("No saved variables found"); // Debug log
-            }
+            // Ensure project is initialized
+            EnsureInitialized();
             
             Element startingElement = FindStartingElement();
             
-            if (startingElement == null) {
+            if (startingElement == null) 
+            {
                 Debug.LogError("No starting element found with the specified criteria");
                 return;
             }
@@ -67,49 +108,95 @@ namespace Arcweave
             if (onProjectStart != null) onProjectStart(aw.Project);
             
             Next(startingElement);
-
-            if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
 
-        private Element FindStartingElement() {
-            // Cerca in tutte le board
-            foreach (var board in aw.Project.boards) {
-                // Cerca gli elementi nella board
-                foreach (var node in board.Nodes.OfType<Element>()) {
-                    // Controlla se l'elemento ha un componente "character"
-                    if (node.TryGetComponent("character", out var characterComponent)) {
-                        // Opzionalmente, puoi aggiungere ulteriori controlli sull'attributo
-                        var hasStartingDialogueAttribute = node.Attributes.Any(attr => 
-                            attr.Name == "starting_dialogue_elements" && 
-                            (bool)attr.data == true
+        /// <summary>
+        /// Find a suitable starting element for the project
+        /// </summary>
+        private Element FindStartingElement() 
+        {
+            if (aw == null || aw.Project == null || aw.Project.boards == null)
+            {
+                Debug.LogError("Cannot find starting element - project not properly initialized");
+                return null;
+            }
+            
+            // Search in all boards
+            foreach (var board in aw.Project.boards) 
+            {
+                if (board == null || board.Nodes == null) continue;
+                
+                // Search for elements in the board
+                foreach (var node in board.Nodes.OfType<Element>()) 
+                {
+                    if (node == null) continue;
+                    
+                    // Check if element has a "character" component
+                    if (node.TryGetComponent("character", out var characterComponent)) 
+                    {
+                        // Check for starting_dialogue_elements attribute
+                        var hasStartingDialogueAttribute = node.Attributes != null && node.Attributes.Any(attr => 
+                            attr != null && attr.Name == "starting_dialogue_elements" && 
+                            attr.data != null && (bool)attr.data == true
                         );
                         
-                        if (hasStartingDialogueAttribute) {
+                        if (hasStartingDialogueAttribute) 
+                        {
                             return node;
                         }
                     }
                 }
             }
             
-            // Fallback all'elemento iniziale originale se non trova nulla
+            // Fallback to the original starting element
             return aw.Project.StartingElement;
         }
 
-        ///Moves to the next element through a path
-        void Next(Path path) {
+        /// <summary>
+        /// Moves to the next element through a path
+        /// </summary>
+        void Next(Path path) 
+        {
+            if (path == null)
+            {
+                Debug.LogError("Cannot navigate to null path");
+                return;
+            }
+            
             path.ExecuteAppendedConnectionLabels();
             Next(path.TargetElement);
         }
 
-        ///Moves to the next/an element directly
-        public void Next(Element element) {
+        /// <summary>
+        /// Moves to the next/an element directly
+        /// </summary>
+        public void Next(Element element) 
+        {
+            if (element == null)
+            {
+                Debug.LogError("Cannot navigate to null element");
+                if (onProjectFinish != null) onProjectFinish(aw.Project);
+                return;
+            }
+            
             currentElement = element;
             currentElement.Visits++;
+            
+            // Check if element has content
+            if (!currentElement.HasContent())
+            {
+                Debug.LogWarning($"Element '{currentElement.Title}' has no content");
+            }
+            
             if (onElementEnter != null) onElementEnter(element);
+            
             var currentState = currentElement.GetOptions();
-            if (currentState.hasPaths) {
-                if (currentState.hasOptions) {
-                    if (onElementOptions != null) {
+            if (currentState.hasPaths) 
+            {
+                if (currentState.hasOptions) 
+                {
+                    if (onElementOptions != null) 
+                    {
                         onElementOptions(currentState, (index) => Next(currentState.Paths[index]));
                     }
                     return;
@@ -125,31 +212,69 @@ namespace Arcweave
             if (onProjectFinish != null) onProjectFinish(aw.Project);
         }
 
-        ///----------------------------------------------------------------------------------------------
-
-        ///Save the current element and the variables.
-        public void Save() {
+        /// <summary>
+        /// Save the current element and the variables.
+        /// </summary>
+        public void Save() 
+        {
+            if (currentElement == null)
+            {
+                Debug.LogWarning("Cannot save - no current element");
+                return;
+            }
+            
             var id = currentElement.Id;
             var variables = aw.Project.SaveVariables();
-            Debug.Log($"Saving variables: {variables}"); // Debug log
+            Debug.Log($"Saving variables: {variables}");
             PlayerPrefs.SetString(SAVE_KEY+"_currentElement", id);
             PlayerPrefs.SetString(SAVE_KEY+"_variables", variables);
-            PlayerPrefs.Save(); // Forziamo il salvataggio immediato
+            PlayerPrefs.Save(); // Force immediate save
         }
 
-        ///Loads the prviously current element and the variables and moves Next to that element.
-        public void Load() {
+        /// <summary>
+        /// Loads the previously current element and the variables and moves Next to that element.
+        /// </summary>
+        public void Load() 
+        {
+            if (!PlayerPrefs.HasKey(SAVE_KEY+"_currentElement") || !PlayerPrefs.HasKey(SAVE_KEY+"_variables"))
+            {
+                Debug.LogWarning("Cannot load - no saved state found");
+                return;
+            }
+            
             var id = PlayerPrefs.GetString(SAVE_KEY+"_currentElement");
             var variables = PlayerPrefs.GetString(SAVE_KEY+"_variables");
+            
+            if (string.IsNullOrEmpty(id))
+            {
+                Debug.LogError("Cannot load - invalid element ID");
+                return;
+            }
+            
             var element = aw.Project.ElementWithId(id);
+            if (element == null)
+            {
+                Debug.LogError($"Cannot load - element with ID '{id}' not found");
+                return;
+            }
+            
             aw.Project.LoadVariables(variables);
             Next(element);
         }
 
-        public void ResetVariables() {
+        /// <summary>
+        /// Reset all variables to their default values
+        /// </summary>
+        public void ResetVariables() 
+        {
             PlayerPrefs.DeleteKey(SAVE_KEY + "_variables");
             PlayerPrefs.DeleteKey(SAVE_KEY + "_currentElement");
-            aw.Project.Initialize(); // Questo reimposterà tutte le variabili ai loro valori predefiniti
+            
+            if (aw != null && aw.Project != null)
+            {
+                aw.Project.Initialize(); // This will reset all variables to their default values
+                isInitialized = true;
+            }
         }
     }
 }

@@ -3,9 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using Arcweave.Project;
 using System.Text;
+using System.Collections;
 
 namespace Arcweave
 {
+    /// <summary>
+    /// Provides the user interface for the Arcweave narrative system
+    /// </summary>
     public class ArcweavePlayerUI : MonoBehaviour
     {
         [Header("References")]
@@ -18,36 +22,142 @@ namespace Arcweave
         public RawImage componentCover;
 
         [Header("Variables UI")]
-        public Text variablesText;  // Reference to a Text component for displaying variables
-        public bool showVariables = true;  // Toggle to enable/disable variables display
-        public float variableUpdateInterval = 0.5f;  // How often to update variables display
+        public Text variablesText;
+        public bool showVariables = true;
+        public float variableUpdateInterval = 0.5f;
+        
+        [Header("Animations")]
+        public float crossfadeTime = 0.3f;
+        public bool animateTextEntries = true;
+        
+        [Header("Debug Settings")]
+        public bool debugMode = false;
 
-        private const float CROSSFADE_TIME = 0.3f;
+        // Private variables
         private List<Button> tempButtons = new List<Button>();
         private bool isDialogueEndElement = false;
         private float nextVariableUpdate = 0f;
+        private bool isInitialized = false;
+        private Element currentElement = null;
 
-        void OnEnable() {
+        void Awake()
+        {
+            // Ensure we have a valid player reference
+            if (player == null)
+            {
+                player = GetComponent<ArcweavePlayer>();
+                if (player == null)
+                {
+                    player = FindObjectOfType<ArcweavePlayer>();
+                    if (player == null)
+                    {
+                        Debug.LogError("ArcweavePlayer not found. Please assign in the inspector.");
+                    }
+                }
+            }
+        }
+
+        void OnEnable() 
+        {
+            Initialize();
+        }
+        
+        /// <summary>
+        /// Initialize the UI elements and event listeners
+        /// </summary>
+        private void Initialize()
+        {
+            if (isInitialized) return;
+            
             // Initialize UI elements
-            componentCover.gameObject.SetActive(false);
-            buttonTemplate.gameObject.SetActive(false);
+            if (componentCover != null) componentCover.gameObject.SetActive(false);
+            if (buttonTemplate != null) buttonTemplate.gameObject.SetActive(false);
             
             // Set up button listeners
-            saveButton.onClick.AddListener(Save);
-            loadButton.onClick.AddListener(Load);
-            if (!PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY)) {
-                loadButton.gameObject.SetActive(false);
-            }
+            SetupButtons();
 
             // Subscribe to Arcweave events
-            player.onElementEnter += OnElementEnter;
-            player.onElementOptions += OnElementOptions;
-            player.onWaitInputNext += OnWaitInputNext;
-            player.onProjectFinish += OnProjectFinish;
+            SubscribeToEvents();
 
             // Initialize variables display
-            if (variablesText != null)
+            if (variablesText != null && showVariables)
                 UpdateVariablesDisplay();
+                
+            isInitialized = true;
+            
+            if (debugMode)
+            {
+                Debug.Log("ArcweavePlayerUI initialized");
+            }
+        }
+        
+        /// <summary>
+        /// Set up save/load button functionality
+        /// </summary>
+        private void SetupButtons()
+        {
+            if (saveButton != null) 
+            {
+                saveButton.onClick.RemoveAllListeners();
+                saveButton.onClick.AddListener(Save);
+            }
+            
+            if (loadButton != null)
+            {
+                loadButton.onClick.RemoveAllListeners();
+                loadButton.onClick.AddListener(Load);
+                loadButton.gameObject.SetActive(PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY + "_currentElement"));
+            }
+        }
+        
+        /// <summary>
+        /// Subscribe to ArcweavePlayer events
+        /// </summary>
+        private void SubscribeToEvents()
+        {
+            if (player != null)
+            {
+                // Unsubscribe first to prevent duplicate subscriptions
+                UnsubscribeFromEvents();
+                
+                player.onElementEnter += OnElementEnter;
+                player.onElementOptions += OnElementOptions;
+                player.onWaitInputNext += OnWaitInputNext;
+                player.onProjectFinish += OnProjectFinish;
+                
+                if (debugMode)
+                {
+                    Debug.Log("Subscribed to ArcweavePlayer events");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Cannot subscribe to ArcweavePlayer events - player reference is null");
+            }
+        }
+
+        void OnDisable()
+        {
+            UnsubscribeFromEvents();
+        }
+        
+        /// <summary>
+        /// Unsubscribe from ArcweavePlayer events
+        /// </summary>
+        private void UnsubscribeFromEvents()
+        {
+            if (player != null)
+            {
+                player.onElementEnter -= OnElementEnter;
+                player.onElementOptions -= OnElementOptions;
+                player.onWaitInputNext -= OnWaitInputNext;
+                player.onProjectFinish -= OnProjectFinish;
+                
+                if (debugMode)
+                {
+                    Debug.Log("Unsubscribed from ArcweavePlayer events");
+                }
+            }
         }
 
         void Update()
@@ -60,6 +170,9 @@ namespace Arcweave
             }
         }
 
+        /// <summary>
+        /// Updates the variable display text
+        /// </summary>
         private void UpdateVariablesDisplay()
         {
             if (player?.aw?.Project == null) return;
@@ -78,78 +191,217 @@ namespace Arcweave
             variablesText.text = sb.ToString();
         }
 
-        void Save() {
+        /// <summary>
+        /// Save the current state of the narrative
+        /// </summary>
+        public void Save() 
+        {
+            if (player == null) return;
+            
             player.Save();
-            loadButton.gameObject.SetActive(true);
+            
+            if (loadButton != null) 
+            {
+                loadButton.gameObject.SetActive(true);
+            }
+            
+            Debug.Log("Arcweave state saved");
         }
 
-        void Load() {
+        /// <summary>
+        /// Load a saved state of the narrative
+        /// </summary>
+        public void Load() 
+        {
+            if (player == null) return;
+            
+            if (!PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY + "_currentElement"))
+            {
+                Debug.LogWarning("No saved state found");
+                return;
+            }
+            
             ClearTempButtons();
             player.Load();
+            Debug.Log("Arcweave state loaded");
         }
 
-        void OnElementEnter(Element element) {
-            // Clear any existing buttons before processing new element
+        /// <summary>
+        /// Handle entering a new narrative element
+        /// </summary>
+        private void OnElementEnter(Element element) 
+        {
+            if (element == null)
+            {
+                Debug.LogError("Cannot display null element");
+                return;
+            }
+            
+            currentElement = element;
+            
+            if (debugMode)
+            {
+                Debug.Log($"Entering element: {element.Title}");
+            }
+            
+            // Clear any existing buttons
             ClearTempButtons();
             
             // Set up content text
-            content.text = "<i>[ No Content ]</i>";
+            UpdateContentText(element);
+            
+            // Handle component cover image
+            HandleComponentCoverImage(element);
+            
+            // Check if current element has the dialogue_end tag
+            CheckForDialogueEndTag(element);
+        }
+        
+        /// <summary>
+        /// Updates the content text with element content
+        /// </summary>
+        private void UpdateContentText(Element element)
+        {
+            if (content == null) return;
+            
             if (element.HasContent())
             {
+                // Run content script before displaying
                 element.RunContentScript();
+                
+                // Set the content text
                 content.text = element.RuntimeContent;
+                
+                if (debugMode)
+                {
+                    Debug.Log($"Element content: {element.RuntimeContent}");
+                }
+            }
+            else
+            {
+                content.text = "<i>[ No Content ]</i>";
+                Debug.LogWarning($"Element '{element.Title}' has no content");
             }
             
             // Animate content fade-in
-            content.canvasRenderer.SetAlpha(0);
-            content.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-
-            /* Temporarily disabled main cover image handling
-            // Handle main cover image
-            var image = element.GetCoverOrFirstComponentImage();
-            if (image != null) {
-                cover.gameObject.SetActive(true);
-                cover.texture = image;
-                cover.canvasRenderer.SetAlpha(0);
-                cover.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-            } else {
-                cover.canvasRenderer.SetAlpha(1);
-                cover.CrossFadeAlpha(0f, CROSSFADE_TIME, false);
-                cover.gameObject.SetActive(false);
+            if (animateTextEntries)
+            {
+                content.canvasRenderer.SetAlpha(0);
+                content.CrossFadeAlpha(1f, crossfadeTime, false);
             }
-            */
-
-            // Handle component cover image
-            var compImage = element.GetFirstComponentCoverImage();
-            if (compImage != null) {
-                componentCover.gameObject.SetActive(true);
-                componentCover.texture = compImage;
-                componentCover.canvasRenderer.SetAlpha(0);
-                componentCover.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-            } else {
-                componentCover.canvasRenderer.SetAlpha(1);
-                componentCover.CrossFadeAlpha(0f, CROSSFADE_TIME, false);
-                componentCover.gameObject.SetActive(false);
+            else
+            {
+                content.canvasRenderer.SetAlpha(1f);
             }
-            
-            // Check if current element has the dialogue_end tag
-            DialogueTrigger activeTrigger = null;
-            if (GameManager.Instance != null)
-                activeTrigger = GameManager.Instance.GetActiveDialogueTrigger();
-                
-            isDialogueEndElement = activeTrigger != null && GameManager.Instance.HasDialogueEndTag(element);
-            
-            if (isDialogueEndElement)
-                Debug.Log("Found element with dialogue_end tag");
         }
 
-        void OnElementOptions(Options options, System.Action<int> callback) {
-            for (var i = 0; i < options.Paths.Count; i++) {
-                var index = i; // Create stable copy for the delegate
-                var text = !string.IsNullOrEmpty(options.Paths[i].label) ? options.Paths[i].label : "<i>[ N/A ]</i>";
+        /// <summary>
+        /// Handles the component cover image display
+        /// </summary>
+        private void HandleComponentCoverImage(Element element)
+        {
+            if (componentCover == null) return;
+            
+            var compImage = element.GetFirstComponentCoverImage();
+            
+            // Try to load with custom image loader if needed
+            if (compImage == null && element.Components != null && element.Components.Count > 0 && 
+                element.Components[0].cover != null)
+            {
+                var imageLoader = FindObjectOfType<ArcweaveImageLoader>();
+                if (imageLoader != null)
+                {
+                    compImage = imageLoader.LoadImage(element.Components[0].cover.filePath);
+                }
+            }
+            
+            if (compImage != null) 
+            {
+                componentCover.gameObject.SetActive(true);
+                componentCover.texture = compImage;
+                
+                if (animateTextEntries)
+                {
+                    componentCover.canvasRenderer.SetAlpha(0);
+                    componentCover.CrossFadeAlpha(1f, crossfadeTime, false);
+                }
+                else
+                {
+                    componentCover.canvasRenderer.SetAlpha(1f);
+                }
+            } 
+            else 
+            {
+                if (componentCover.gameObject.activeInHierarchy)
+                {
+                    if (animateTextEntries)
+                    {
+                        componentCover.canvasRenderer.SetAlpha(1);
+                        componentCover.CrossFadeAlpha(0f, crossfadeTime, false);
+                        // Hide after fade animation completes
+                        Invoke("HideComponentCover", crossfadeTime);
+                    }
+                    else
+                    {
+                        componentCover.gameObject.SetActive(false);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Helper method to hide component cover after animation
+        /// </summary>
+        private void HideComponentCover()
+        {
+            if (componentCover != null)
+            {
+                componentCover.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the current element has a dialogue end tag
+        /// </summary>
+        private void CheckForDialogueEndTag(Element element)
+        {
+            isDialogueEndElement = false;
+            
+            if (GameManager.Instance == null) return;
+            
+            DialogueTrigger activeTrigger = GameManager.Instance.GetActiveDialogueTrigger();
+            if (activeTrigger != null)
+            {
+                isDialogueEndElement = GameManager.Instance.HasDialogueEndTag(element);
+                
+                if (isDialogueEndElement && debugMode)
+                {
+                    Debug.Log($"Element '{element.Title}' has dialogue_end tag");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle displaying options to the player
+        /// </summary>
+        private void OnElementOptions(Options options, System.Action<int> callback) 
+        {
+            if (options == null || options.Paths == null || options.Paths.Count == 0) 
+            {
+                Debug.LogWarning("No options provided to display");
+                return;
+            }
+            
+            for (int i = 0; i < options.Paths.Count; i++) 
+            {
+                int index = i; // Create stable copy for the delegate
+                string text = !string.IsNullOrEmpty(options.Paths[i].label) ? 
+                              options.Paths[i].label : 
+                              "<i>[ No Label ]</i>";
                 
                 Button button;
-                if (isDialogueEndElement) {
+                if (isDialogueEndElement) 
+                {
                     // For dialogue_end elements, create button that ends dialogue after selection
                     button = MakeButton(text, () => {
                         // First end dialogue immediately
@@ -157,81 +409,165 @@ namespace Arcweave
                         // Then process the callback
                         callback(index);
                     });
-                } else {
+                } 
+                else 
+                {
                     // Normal behavior for non-ending elements
                     button = MakeButton(text, () => callback(index));
                 }
                 
                 // Position the button
-                var pos = button.transform.position;
-                pos.y += buttonTemplate.GetComponent<RectTransform>().rect.height * (options.Paths.Count - 1 - i);
-                button.transform.position = pos;
+                PositionButton(button, i, options.Paths.Count);
             }
         }
         
-        // End the current dialogue
-        void EndCurrentDialogue() {
+        /// <summary>
+        /// Position a button in the options list
+        /// </summary>
+        private void PositionButton(Button button, int index, int totalOptions)
+        {
+            if (buttonTemplate == null || button == null) return;
+            
+            var buttonRect = buttonTemplate.GetComponent<RectTransform>();
+            if (buttonRect == null) return;
+            
+            var pos = button.transform.position;
+            pos.y += buttonRect.rect.height * (totalOptions - 1 - index);
+            button.transform.position = pos;
+        }
+        
+        /// <summary>
+        /// End the current dialogue
+        /// </summary>
+        private void EndCurrentDialogue() 
+        {
             var activeTrigger = GameManager.Instance?.GetActiveDialogueTrigger();
-            if (activeTrigger != null) {
-                Debug.Log("Ending dialogue after option selection");
+            if (activeTrigger != null) 
+            {
                 activeTrigger.EndDialogue();
             }
         }
 
-        void OnWaitInputNext(System.Action callback) {
-            if (isDialogueEndElement) {
-                // For dialogue_end elements with no options, create an "End Conversation" button
-                MakeButton("End Conversation", () => {
-                    // First end dialogue immediately
-                    EndCurrentDialogue();
-                    // Then run the callback
-                    callback();
-                });
-            } else {
-                // Normal continue button
-                MakeButton("Continue...", callback);
+        /// <summary>
+        /// Handle waiting for input to proceed to next element
+        /// </summary>
+        private void OnWaitInputNext(System.Action next) 
+        {
+            if (next == null) return;
+            
+            // Create a "Continue" button
+            var button = MakeButton("Continue", next);
+            
+            // Position the button
+            if (button != null && buttonTemplate != null) 
+            {
+                var buttonRect = buttonTemplate.GetComponent<RectTransform>();
+                if (buttonRect != null) 
+                {
+                    button.transform.position = buttonTemplate.transform.position;
+                }
             }
         }
 
-        void OnProjectFinish(Project.Project p) {
-            // At end of project, offer restart
-            MakeButton("Restart", player.PlayProject);
+        /// <summary>
+        /// Handle project finish event
+        /// </summary>
+        private void OnProjectFinish(Project.Project project) 
+        {
+            if (debugMode)
+            {
+                Debug.Log("Project finished");
+            }
+            
+            ClearTempButtons();
         }
 
-        Button MakeButton(string name, System.Action call) {
-            // Create and set up a new button from the template
-            var button = Instantiate<Button>(buttonTemplate);
-            tempButtons.Add(button);
-
-            // Set up button text and position
-            var text = button.GetComponentInChildren<Text>();
-            var image = button.GetComponent<Image>();
-            text.text = name;
-            button.transform.SetParent(buttonTemplate.transform.parent);
-            button.transform.position = buttonTemplate.transform.position;
+        /// <summary>
+        /// Create a button with the specified text and callback
+        /// </summary>
+        private Button MakeButton(string text, System.Action callback) 
+        {
+            if (buttonTemplate == null) 
+            {
+                Debug.LogError("Button template is not assigned");
+                return null;
+            }
+            
+            var button = Instantiate(buttonTemplate, buttonTemplate.transform.parent);
             button.gameObject.SetActive(true);
-
-            // Animate button appearance
-            text.canvasRenderer.SetAlpha(0);
-            text.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-            image.canvasRenderer.SetAlpha(0);
-            image.CrossFadeAlpha(1f, CROSSFADE_TIME, false);
-
-            // Add the onClick action
-            button.onClick.AddListener(() => {
-                ClearTempButtons();
-                call();
-            });
-
+            
+            // Set button text
+            var buttonText = button.GetComponentInChildren<Text>();
+            if (buttonText != null) 
+            {
+                buttonText.text = text;
+            }
+            
+            // Set button callback
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => callback());
+            
+            // Add to temp buttons list for cleanup
+            tempButtons.Add(button);
+            
+            // Animate button fade-in
+            if (animateTextEntries)
+            {
+                var canvasGroup = button.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = button.gameObject.AddComponent<CanvasGroup>();
+                }
+                
+                canvasGroup.alpha = 0f;
+                StartCoroutine(FadeInButton(canvasGroup));
+            }
+            
             return button;
         }
-
-        public void ClearTempButtons() {
-            // Clean up temporary buttons
-            foreach (var b in tempButtons) {
-                Destroy(b.gameObject);
+        
+        /// <summary>
+        /// Coroutine to fade in a button
+        /// </summary>
+        private IEnumerator FadeInButton(CanvasGroup canvasGroup)
+        {
+            float elapsedTime = 0f;
+            
+            while (elapsedTime < crossfadeTime)
+            {
+                canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsedTime / crossfadeTime);
+                elapsedTime += Time.deltaTime;
+                yield return null;
             }
+            
+            canvasGroup.alpha = 1f;
+        }
+
+        /// <summary>
+        /// Clear all temporary buttons
+        /// </summary>
+        public void ClearTempButtons() 
+        {
+            foreach (var button in tempButtons) 
+            {
+                if (button != null) 
+                {
+                    Destroy(button.gameObject);
+                }
+            }
+            
             tempButtons.Clear();
+        }
+        
+        /// <summary>
+        /// Refresh the current element display
+        /// </summary>
+        public void RefreshCurrentElement()
+        {
+            if (currentElement != null)
+            {
+                OnElementEnter(currentElement);
+            }
         }
     }
 }

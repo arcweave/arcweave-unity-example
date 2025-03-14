@@ -26,18 +26,35 @@ public class ArcweaveImporterUI : MonoBehaviour
     public GameObject loadingIndicator;
     public TextMeshProUGUI messageText;
     public float messageDisplayTime = 2f;
+    
+    [Header("Settings")]
+    public bool autoCloseOnSuccess = true;
+    public float autoCloseDelay = 1.5f;
+    public bool debugMode = false;
 
     // PlayerPrefs keys for saving credentials
     private const string API_KEY_PREF = "ArcweaveAPIKey";
     private const string HASH_PREF = "ArcweaveProjectHash";
     private const string LOCAL_PATH_PREF = "ArcweaveLocalPath";
+    
+    // Reference to the panel that contains this UI
+    private GameObject uiPanel;
+    private Coroutine autoCloseCoroutine;
 
     private void Start()
     {
+        // Get reference to the panel (this gameObject or its parent)
+        uiPanel = transform.gameObject;
+        
         InitializeImporter();
         SetupUI();
         SetupCallbacks();
         UpdatePathInfo();
+        
+        if (debugMode)
+        {
+            Debug.Log("ArcweaveImporterUI initialized");
+        }
     }
 
     private void InitializeImporter()
@@ -64,6 +81,9 @@ public class ArcweaveImporterUI : MonoBehaviour
                 PlayerPrefs.SetString(API_KEY_PREF, value);
                 PlayerPrefs.Save();
             });
+            
+            // Set normal placeholder text
+            apiKeyInput.placeholder.GetComponent<TextMeshProUGUI>().text = "Enter your Arcweave API Key";
         }
 
         if (hashInput != null)
@@ -74,6 +94,9 @@ public class ArcweaveImporterUI : MonoBehaviour
                 PlayerPrefs.SetString(HASH_PREF, value);
                 PlayerPrefs.Save();
             });
+            
+            // Set normal placeholder text
+            hashInput.placeholder.GetComponent<TextMeshProUGUI>().text = "Enter your Arcweave Project Hash";
         }
         
         // Setup local import fields
@@ -91,6 +114,23 @@ public class ArcweaveImporterUI : MonoBehaviour
         // Setup buttons
         if (importWebButton != null)
         {
+            // Enable web import button
+            importWebButton.interactable = true;
+            
+            // Reset colors to default
+            ColorBlock colors = importWebButton.colors;
+            colors.disabledColor = new Color(0.78f, 0.78f, 0.78f, 0.5f); // Default Unity disabled color
+            importWebButton.colors = colors;
+            
+            // Reset button text
+            TextMeshProUGUI buttonText = importWebButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null)
+            {
+                buttonText.text = "Web Import";
+            }
+            
+            // Set proper listener for web import
+            importWebButton.onClick.RemoveAllListeners();
             importWebButton.onClick.AddListener(() => {
                 importer.ImportFromWeb();
             });
@@ -98,6 +138,7 @@ public class ArcweaveImporterUI : MonoBehaviour
         
         if (importLocalButton != null)
         {
+            importLocalButton.onClick.RemoveAllListeners();
             importLocalButton.onClick.AddListener(() => {
                 importer.ImportFromLocalFile();
             });
@@ -105,7 +146,10 @@ public class ArcweaveImporterUI : MonoBehaviour
 
         if (resumeButton != null)
         {
+            resumeButton.onClick.RemoveAllListeners();
             resumeButton.onClick.AddListener(() => {
+                CloseImporterUI();
+                
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.ResumeGame();
@@ -132,18 +176,41 @@ public class ArcweaveImporterUI : MonoBehaviour
 
     private void SetupCallbacks()
     {
-        importer.onImportStarted.AddListener(OnImportStarted);
-        importer.onImportSuccess.AddListener(OnImportSuccess);
-        importer.onImportFailed.AddListener(OnImportFailed);
+        if (importer != null)
+        {
+            importer.onImportStarted.RemoveListener(OnImportStarted);
+            importer.onImportSuccess.RemoveListener(OnImportSuccess);
+            importer.onImportFailed.RemoveListener(OnImportFailed);
+            
+            importer.onImportStarted.AddListener(OnImportStarted);
+            importer.onImportSuccess.AddListener(OnImportSuccess);
+            importer.onImportFailed.AddListener(OnImportFailed);
+        }
+        else
+        {
+            Debug.LogError("Importer reference is null. Cannot setup callbacks.");
+        }
     }
 
     private void OnImportStarted()
     {
+        // Cancel any auto-close coroutine
+        if (autoCloseCoroutine != null)
+        {
+            StopCoroutine(autoCloseCoroutine);
+            autoCloseCoroutine = null;
+        }
+        
         if (importWebButton != null) importWebButton.interactable = false;
         if (importLocalButton != null) importLocalButton.interactable = false;
         if (loadingIndicator != null) loadingIndicator.SetActive(true);
         
         ShowMessage("Importing...");
+        
+        if (debugMode)
+        {
+            Debug.Log("Import started");
+        }
     }
 
     private void OnImportSuccess()
@@ -153,6 +220,17 @@ public class ArcweaveImporterUI : MonoBehaviour
         if (loadingIndicator != null) loadingIndicator.SetActive(false);
         
         ShowMessage("Import successful!");
+        
+        if (debugMode)
+        {
+            Debug.Log("Import successful");
+        }
+        
+        // Auto-close the panel after successful import
+        if (autoCloseOnSuccess)
+        {
+            autoCloseCoroutine = StartCoroutine(AutoCloseAfterDelay());
+        }
     }
 
     private void OnImportFailed()
@@ -162,6 +240,48 @@ public class ArcweaveImporterUI : MonoBehaviour
         if (loadingIndicator != null) loadingIndicator.SetActive(false);
         
         ShowMessage("Import failed!");
+        
+        if (debugMode)
+        {
+            Debug.Log("Import failed");
+        }
+    }
+    
+    /// <summary>
+    /// Closes the importer UI panel and returns to the game
+    /// </summary>
+    public void CloseImporterUI()
+    {
+        if (uiPanel != null)
+        {
+            uiPanel.SetActive(false);
+            
+            if (debugMode)
+            {
+                Debug.Log("Importer UI closed");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("UI Panel reference is null. Cannot close panel.");
+        }
+    }
+    
+    /// <summary>
+    /// Auto-closes the importer UI after a delay
+    /// </summary>
+    private IEnumerator AutoCloseAfterDelay()
+    {
+        yield return new WaitForSeconds(autoCloseDelay);
+        
+        CloseImporterUI();
+        
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResumeGame();
+        }
+        
+        autoCloseCoroutine = null;
     }
 
     private void ShowMessage(string message)
@@ -209,6 +329,12 @@ public class ArcweaveImporterUI : MonoBehaviour
             importer.onImportStarted.RemoveListener(OnImportStarted);
             importer.onImportSuccess.RemoveListener(OnImportSuccess);
             importer.onImportFailed.RemoveListener(OnImportFailed);
+        }
+        
+        // Stop any running coroutines
+        if (autoCloseCoroutine != null)
+        {
+            StopCoroutine(autoCloseCoroutine);
         }
     }
 } 

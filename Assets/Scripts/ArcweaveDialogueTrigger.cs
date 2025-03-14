@@ -2,8 +2,11 @@ using UnityEngine;
 using Arcweave;
 using System.Linq;
 using Arcweave.Project;
-using TMPro;  // Add this to use TextMeshPro
+using TMPro;
 
+/// <summary>
+/// Handles triggering and interaction with Arcweave dialogue system
+/// </summary>
 public class DialogueTrigger : MonoBehaviour
 {
     [Header("Interaction Settings")]
@@ -11,42 +14,88 @@ public class DialogueTrigger : MonoBehaviour
     public KeyCode interactionKey = KeyCode.E;
     
     [Header("UI Settings")]
-    [Tooltip("Reference to the TextMeshPro component for interaction text")]
     public TextMeshPro interactionText;
-    [Tooltip("Text that appears above the NPC when the player is nearby")]
     public string interactionMessage = "Press E to talk";
     
     [Header("Arcweave References")]
     public ArcweavePlayer arcweavePlayer;
     
     [Header("Arcweave Dialogue Settings")]
-    [Tooltip("Specific board name to search for the NPC's dialogue. Leave blank to search all boards.")]
     public string specificBoardName;
+    public string fallbackBoardName;
     
-    [Header("Arcweave Initialization")]
-    [Tooltip("Should the project be initialized when the game starts?")]
-    public bool initializeOnStart = false;
+    [Header("Debug Settings")]
+    public bool debugMode = false;
     
+    // Private variables
     private GameObject player;
     private bool canInteract = false;
     private bool isInDialogue = false;
+    private bool isInitialized = false;
     
     void Start()
     {
-        // Find the player GameObject
-        player = GameObject.FindGameObjectWithTag("Player");
+        Initialize();
+    }
+    
+    /// <summary>
+    /// Initialize the dialogue trigger component
+    /// </summary>
+    private void Initialize()
+    {
+        if (isInitialized) return;
         
-        // Set up Arcweave event subscriptions if available
+        // Find references if not assigned
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("Player not found! Make sure a GameObject with the 'Player' tag exists.");
+            }
+        }
+        
+        if (arcweavePlayer == null)
+        {
+            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            if (arcweavePlayer == null)
+            {
+                Debug.LogWarning("ArcweavePlayer not found in scene!");
+            }
+        }
+        
+        // Set up Arcweave event subscriptions
         if (arcweavePlayer != null)
         {
+            // Unsubscribe first to prevent duplicate subscriptions
+            arcweavePlayer.onProjectFinish -= OnProjectFinish;
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+            
+            // Make sure the Arcweave project is initialized
+            arcweavePlayer.EnsureInitialized();
         }
 
-        // Set initial text if TextMeshPro is assigned
+        // Set initial text visibility
         if (interactionText != null)
         {
             interactionText.text = interactionMessage;
             interactionText.enabled = false;
+        }
+        
+        isInitialized = true;
+        
+        if (debugMode)
+        {
+            Debug.Log($"DialogueTrigger initialized for {gameObject.name}");
+        }
+    }
+    
+    void OnEnable()
+    {
+        // Re-initialize if needed
+        if (!isInitialized)
+        {
+            Initialize();
         }
     }
     
@@ -71,113 +120,267 @@ public class DialogueTrigger : MonoBehaviour
         canInteract = distance < triggerDistance;
         
         // Show or hide the interaction text
-        if (interactionText != null)
-        {
-            interactionText.enabled = canInteract && !isInDialogue;
-            if (interactionText.enabled)
-            {
-                // Make the text face the camera
-                interactionText.transform.rotation = Camera.main.transform.rotation;
-            }
-        }
+        UpdateInteractionText();
         
-        // If the player can interact and presses the key
+        // Start dialogue when player presses the interaction key
         if (canInteract && Input.GetKeyDown(interactionKey))
         {
             StartDialogue();
         }
     }
     
-    // Start the dialogue with this NPC
-    private void StartDialogue()
+    /// <summary>
+    /// Updates the interaction text visibility and rotation
+    /// </summary>
+    private void UpdateInteractionText()
     {
+        if (interactionText == null) return;
+        
+        interactionText.enabled = canInteract && !isInDialogue;
+        
+        if (interactionText.enabled && Camera.main != null)
+        {
+            // Make the text face the camera
+            interactionText.transform.rotation = Camera.main.transform.rotation;
+        }
+    }
+    
+    /// <summary>
+    /// Start the dialogue with this NPC
+    /// </summary>
+    public void StartDialogue()
+    {
+        if (isInDialogue) return;
+        
+        if (arcweavePlayer == null)
+        {
+            Debug.LogError("Cannot start dialogue - ArcweavePlayer not found");
+            return;
+        }
+        
+        // Ensure Arcweave project is initialized
+        arcweavePlayer.EnsureInitialized();
+        
         isInDialogue = true;
         
-        // Tell GameManager to switch to dialogue state
-        GameManager.Instance.StartDialogue(this);
-        
-        // Clear any existing UI elements before starting new dialogue
-        if (arcweavePlayer != null && arcweavePlayer.GetComponent<ArcweavePlayerUI>() != null)
+        if (debugMode)
         {
-            arcweavePlayer.GetComponent<ArcweavePlayerUI>().ClearTempButtons();
+            Debug.Log($"Starting dialogue with {gameObject.name}");
+        }
+        
+        // Tell GameManager to switch to dialogue state
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.StartDialogue(this);
+        }
+        
+        // Clear any existing UI elements
+        var playerUI = arcweavePlayer?.GetComponent<ArcweavePlayerUI>();
+        if (playerUI != null)
+        {
+            playerUI.ClearTempButtons();
         }
         
         // Find and start the proper dialogue element
         FindAndStartNPCDialogue();
     }
     
-    // End the dialogue and return to gameplay
+    /// <summary>
+    /// End the dialogue and return to gameplay
+    /// </summary>
     public void EndDialogue()
     {
+        if (!isInDialogue) return;
+        
         isInDialogue = false;
-        GameManager.Instance.EndDialogue();
+        
+        if (debugMode)
+        {
+            Debug.Log($"Ending dialogue with {gameObject.name}");
+        }
+        
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.EndDialogue();
+        }
     }
     
-    // Called when Arcweave project finishes
+    /// <summary>
+    /// Called when Arcweave project finishes
+    /// </summary>
     private void OnProjectFinish(Arcweave.Project.Project project)
     {
-        // End the dialogue when project finishes
+        if (debugMode)
+        {
+            Debug.Log($"Project finished event received by {gameObject.name}");
+        }
+        
         EndDialogue();
     }
     
-    // Find and start the appropriate dialogue for this NPC
+    /// <summary>
+    /// Find and start the appropriate dialogue for this NPC
+    /// </summary>
     private void FindAndStartNPCDialogue()
     {
-        // If no board is specified, use the default starting element
+        if (arcweavePlayer == null || arcweavePlayer.aw == null || arcweavePlayer.aw.Project == null)
+        {
+            Debug.LogError("Arcweave Player or Project not assigned");
+            EndDialogue();
+            return;
+        }
+        
+        // If no board is specified, try to find a board with this NPC's name
         if (string.IsNullOrEmpty(specificBoardName))
         {
-            Debug.LogWarning("No specific board name provided, using default starting element");
-            arcweavePlayer.PlayProject();
-            return;
+            specificBoardName = gameObject.name;
+            Debug.Log($"No board specified, trying to find board named: {specificBoardName}");
         }
 
         // Search for the specified board
-        var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board.Name == specificBoardName);
+        var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board != null && board.Name == specificBoardName);
+        
+        // Try fallback board if specified and primary board not found
+        if (targetBoard == null && !string.IsNullOrEmpty(fallbackBoardName))
+        {
+            Debug.LogWarning($"Board '{specificBoardName}' not found, trying fallback board '{fallbackBoardName}'");
+            targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board != null && board.Name == fallbackBoardName);
+        }
+        
         if (targetBoard == null)
         {
-            Debug.LogWarning($"Board '{specificBoardName}' not found, using default starting element");
-            arcweavePlayer.PlayProject();
+            Debug.LogError($"Could not find board '{specificBoardName}' or fallback board '{fallbackBoardName}'");
+            EndDialogue();
             return;
         }
 
-        // Search for an element with the dialogue_start tag in the specified board
-        Element startingElement = null;
-        foreach (var node in targetBoard.Nodes)
-        {
-            if (node is Element element)
-            {
-                foreach (var attribute in element.Attributes)
-                {
-                    string data = attribute.data?.ToString();
-                    if (data != null && data.Contains(GameManager.Instance.dialogueStartTag))
-                    {
-                        startingElement = element;
-                        break;
-                    }
-                }
-                if (startingElement != null) break;
-            }
-        }
+        // Find element with dialogue_start tag in the specified board
+        Debug.Log($"Starting dialogue from board: {targetBoard.Name}");
+        
+        Element startingElement = FindDialogueStartElement(targetBoard);
 
         if (startingElement != null)
         {
-            // Use the element found with the tag in the specified board
+            // Use the element found with the tag
+            Debug.Log($"Starting dialogue from element: {startingElement.Title}");
+            
+            // Check if element has content
+            if (!startingElement.HasContent())
+            {
+                Debug.LogWarning($"Starting element '{startingElement.Title}' has no content!");
+            }
+            
             arcweavePlayer.Next(startingElement);
         }
         else
         {
-            Debug.LogWarning($"No element with tag '{GameManager.Instance.dialogueStartTag}' found in board '{specificBoardName}', using default starting element");
-            arcweavePlayer.PlayProject();
+            // Try to find any element in the board as a fallback
+            if (targetBoard.Nodes != null && targetBoard.Nodes.Count > 0)
+            {
+                var fallbackElement = targetBoard.Nodes.OfType<Element>().FirstOrDefault();
+                if (fallbackElement != null)
+                {
+                    Debug.LogWarning($"No element with dialogue_start tag found. Using first element in board as fallback: {fallbackElement.Title}");
+                    arcweavePlayer.Next(fallbackElement);
+                    return;
+                }
+            }
+            
+            // No starting element found, end dialogue
+            Debug.LogError($"No starting element found in board '{targetBoard.Name}'");
+            EndDialogue();
         }
     }
     
+    /// <summary>
+    /// Find an element with the dialogue_start tag in a board
+    /// </summary>
+    private Element FindDialogueStartElement(Board targetBoard)
+    {
+        if (targetBoard == null || targetBoard.Nodes == null) return null;
+        
+        string tagToFind = string.Empty;
+        
+        // Get the dialogue start tag from GameManager
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.dialogueStartTag))
+        {
+            tagToFind = GameManager.Instance.dialogueStartTag;
+        }
+        else
+        {
+            // Fallback to default tag if GameManager is not available
+            tagToFind = "dialogue_start";
+            Debug.LogWarning("GameManager not found or dialogueStartTag not set. Using default tag: 'dialogue_start'");
+        }
+        
+        if (debugMode)
+        {
+            Debug.Log($"Searching for elements with tag: {tagToFind}");
+        }
+        
+        // First pass: look for exact tag match
+        foreach (var node in targetBoard.Nodes)
+        {
+            if (node is Element element)
+            {
+                if (element.Attributes == null) continue;
+                
+                foreach (var attribute in element.Attributes)
+                {
+                    if (attribute == null || attribute.data == null) continue;
+                    
+                    string data = attribute.data.ToString();
+                    if (data == tagToFind)
+                    {
+                        if (debugMode)
+                        {
+                            Debug.Log($"Found element with exact tag match: {element.Title}");
+                        }
+                        return element;
+                    }
+                }
+            }
+        }
+        
+        // Second pass: look for partial tag match
+        foreach (var node in targetBoard.Nodes)
+        {
+            if (node is Element element)
+            {
+                if (element.Attributes == null) continue;
+                
+                foreach (var attribute in element.Attributes)
+                {
+                    if (attribute == null || attribute.data == null) continue;
+                    
+                    string data = attribute.data.ToString();
+                    if (data.Contains(tagToFind))
+                    {
+                        if (debugMode)
+                        {
+                            Debug.Log($"Found element with partial tag match: {element.Title}");
+                        }
+                        return element;
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Force cleanup on destruction
+    /// </summary>
     void OnDestroy()
     {
         if (interactionText != null)
             Destroy(interactionText.gameObject);
     }
     
-    // Visualize interaction radius in the editor
+    /// <summary>
+    /// Visualize interaction radius in the editor
+    /// </summary>
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

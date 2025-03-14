@@ -1618,7 +1618,6 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
-  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1763,22 +1762,6 @@ MonoBehaviour:
   mouseSensitivity: 3
   minVerticalAngle: 0
   maxVerticalAngle: 45
---- !u!114 &330585549
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36da241c39275434193d7ef1c792d6e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arcweavePlayer: {fileID: 1168690309}
-  arcweaveImporter: {fileID: 1117336117}
-  componentName: Environment
-  timeAttribute: Time
 --- !u!1 &340851688
 GameObject:
   m_ObjectHideFlags: 0
@@ -2651,9 +2634,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1168690309}
     - target: {fileID: 1403719407132185583, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
+      propertyPath: crossfadeTime
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1403719407132185583, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
       propertyPath: variablesText
       value: 
       objectReference: {fileID: 1378631405}
+    - target: {fileID: 1403719407132185583, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
+      propertyPath: animateTextEntries
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1403719407132185583, guid: e8f9dc58e4b2d4e4eb832a4bb5274656, type: 3}
       propertyPath: variableUpdateInterval
       value: 1
@@ -3079,9 +3070,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1501610687}
-    - targetCorrespondingSourceObject: {fileID: 8483050105962444629, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1745229057}
   m_SourcePrefab: {fileID: 100100000, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
 --- !u!4 &528840094 stripped
 Transform:
@@ -8975,6 +8963,7 @@ GameObject:
   m_Component:
   - component: {fileID: 723252307}
   - component: {fileID: 723252306}
+  - component: {fileID: 723252308}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -9001,10 +8990,12 @@ MonoBehaviour:
   cameraController: {fileID: 330585548}
   characterWithAnimator: {fileID: 289867023}
   quitButton: {fileID: 1896460837}
+  sceneController: {fileID: 723252308}
   messageText: {fileID: 674497895}
   messageDisplayTime: 2
   dialogueEndTag: dialogue_end
   dialogueStartTag: dialogue_start
+  debugMode: 0
 --- !u!4 &723252307
 Transform:
   m_ObjectHideFlags: 0
@@ -9020,6 +9011,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &723252308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 723252305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d31d8771396ec1441bd54677ecacb147, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  arcweavePlayer: {fileID: 1168690309}
+  arcweaveImporter: {fileID: 1117336117}
+  componentName: Environment
+  timeAttribute: Time
+  particleAttribute: Weather
+  sceneCamera: {fileID: 330585545}
+  particleSystems:
+  - {fileID: 600165901}
 --- !u!1 &736294456
 GameObject:
   m_ObjectHideFlags: 0
@@ -9321,7 +9332,8 @@ MonoBehaviour:
   interactionMessage: Press E to talk
   arcweavePlayer: {fileID: 1168690309}
   specificBoardName: Wanda Dialogue
-  initializeOnStart: 1
+  fallbackBoardName: 
+  debugMode: 0
 --- !u!4 &766655645 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
@@ -9361,6 +9373,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ae832d1c7fb38742ba5dd6e4de01fe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arcweavePlayer: {fileID: 1168690309}
   healthBar: {fileID: 1314564174}
   healthText: {fileID: 574776475}
   healthVariableName: wanda_health
@@ -10129,6 +10142,9 @@ MonoBehaviour:
   loadingIndicator: {fileID: 0}
   messageText: {fileID: 674497895}
   messageDisplayTime: 2
+  autoCloseOnSuccess: 1
+  autoCloseDelay: 1.5
+  debugMode: 0
 --- !u!114 &939519321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11099,6 +11115,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arcweaveAsset: {fileID: 11400000, guid: c940cd6f0e2e0c447be8e20567cba17d, type: 2}
+  apiKey: T3GiLkNM6z0KlTCPVLHqAzhWI2796u0h4DI5WBIWk0zp2rZsR7Kv9FhbwW6M
+  projectHash: Qz0Pz85EYa
+  localJsonFilePath: arcweave/project.json
   onImportStarted:
     m_PersistentCalls:
       m_Calls: []
@@ -11108,9 +11127,6 @@ MonoBehaviour:
   onImportFailed:
     m_PersistentCalls:
       m_Calls: []
-  apiKey: T3GiLkNM6z0KlTCPVLHqAzhWI2796u0h4DI5WBIWk0zp2rZsR7Kv9FhbwW6M
-  projectHash: Qz0Pz85EYa
-  localJsonFilePath: arcweave/project.json
   particleSystemController: {fileID: 1601662582}
 --- !u!4 &1117336118
 Transform:
@@ -13512,7 +13528,8 @@ MonoBehaviour:
   interactionMessage: Press E to talk
   arcweavePlayer: {fileID: 1168690309}
   specificBoardName: Healer Dialogue
-  initializeOnStart: 1
+  fallbackBoardName: 
+  debugMode: 0
 --- !u!4 &1501610685 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
@@ -13552,6 +13569,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ae832d1c7fb38742ba5dd6e4de01fe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arcweavePlayer: {fileID: 1168690309}
   healthBar: {fileID: 1820399318}
   healthText: {fileID: 2107270578}
   healthVariableName: healer_health
@@ -14027,7 +14045,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1601662581}
-  - component: {fileID: 1601662583}
   - component: {fileID: 1601662582}
   m_Layer: 0
   m_Name: Rain
@@ -14068,23 +14085,6 @@ MonoBehaviour:
   componentName: Environment
   weatherAttribute: Weather
   rainParticleSystem: {fileID: 600165901}
---- !u!114 &1601662583
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1601662579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea0b01a34f169c544bb89e7d0c31813b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arcweavePlayer: {fileID: 1168690309}
-  componentName: SceneManager
-  attributeName: Time
-  targetParticleSystem: {fileID: 600165901}
-  particleControlAttribute: ParticleState
 --- !u!1 &1602573147 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 99701d123346c584a98f81a817029dea, type: 3}
@@ -15248,30 +15248,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1743633604}
   m_CullTransparentMesh: 1
---- !u!1 &1745229053 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8483050105962444629, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
-  m_PrefabInstance: {fileID: 510499926}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1745229057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1745229053}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8429c82fe028dc64fa02a186002bd340, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  triggerDistance: 3
-  interactionKey: 101
-  interactionText: {fileID: 0}
-  interactionMessage: Press E to talk
-  arcweavePlayer: {fileID: 0}
-  specificBoardName: 
-  initializeOnStart: 0
 --- !u!4 &1756175316 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 163b2fa587b6efa468118dd81763bc95, type: 3}
