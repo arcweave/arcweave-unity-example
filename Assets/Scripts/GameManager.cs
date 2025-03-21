@@ -80,12 +80,12 @@ public class GameManager : MonoBehaviour
         // Find references if not assigned
         if (playerController == null)
         {
-            playerController = FindObjectOfType<PlayerController>();
+            playerController = FindAnyObjectByType<PlayerController>();
         }
         
         if (cameraController == null)
         {
-            cameraController = FindObjectOfType<ThirdPersonCamera>();
+            cameraController = FindAnyObjectByType<ThirdPersonCamera>();
         }
         
         if (characterWithAnimator != null)

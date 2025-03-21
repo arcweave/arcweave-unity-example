@@ -19,7 +19,6 @@ public class ArcweaveImporterUI : MonoBehaviour
     [Header("Local Import UI")]
     public TMP_InputField localPathInput;
     public Button importLocalButton;
-    public TextMeshProUGUI pathInfoText;
     
     [Header("Other UI")]
     public Button resumeButton;
@@ -49,7 +48,7 @@ public class ArcweaveImporterUI : MonoBehaviour
         InitializeImporter();
         SetupUI();
         SetupCallbacks();
-        UpdatePathInfo();
+      
         
         if (debugMode)
         {
@@ -61,7 +60,7 @@ public class ArcweaveImporterUI : MonoBehaviour
     {
         if (importer == null)
         {
-            importer = FindObjectOfType<RuntimeArcweaveImporter>();
+            importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
         }
     }
 
@@ -107,7 +106,6 @@ public class ArcweaveImporterUI : MonoBehaviour
                 importer.SetLocalJsonFilePath(value);
                 PlayerPrefs.SetString(LOCAL_PATH_PREF, value);
                 PlayerPrefs.Save();
-                UpdatePathInfo();
             });
         }
 
@@ -166,13 +164,7 @@ public class ArcweaveImporterUI : MonoBehaviour
         if (messageText != null) messageText.gameObject.SetActive(false);
     }
     
-    private void UpdatePathInfo()
-    {
-        if (pathInfoText != null && importer != null)
-        {
-            pathInfoText.text = $"Posiziona il file JSON in:\n{importer.GetUserFriendlyPath()}";
-        }
-    }
+   
 
     private void SetupCallbacks()
     {

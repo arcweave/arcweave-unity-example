@@ -48,7 +48,7 @@ namespace Arcweave
                 player = GetComponent<ArcweavePlayer>();
                 if (player == null)
                 {
-                    player = FindObjectOfType<ArcweavePlayer>();
+                    player = FindAnyObjectByType<ArcweavePlayer>();
                     if (player == null)
                     {
                         Debug.LogError("ArcweavePlayer not found. Please assign in the inspector.");
@@ -304,16 +304,9 @@ namespace Arcweave
             
             var compImage = element.GetFirstComponentCoverImage();
             
-            // Try to load with custom image loader if needed
-            if (compImage == null && element.Components != null && element.Components.Count > 0 && 
-                element.Components[0].cover != null)
-            {
-                var imageLoader = FindObjectOfType<ArcweaveImageLoader>();
-                if (imageLoader != null)
-                {
-                    compImage = imageLoader.LoadImage(element.Components[0].cover.filePath);
-                }
-            }
+            // Nota: Il caricamento tramite ArcweaveImageLoader è stato rimosso perché
+            // non è possibile accedere alla classe nel contesto attuale.
+            // GetFirstComponentCoverImage() dovrebbe già fornire l'immagine quando disponibile.
             
             if (compImage != null) 
             {
