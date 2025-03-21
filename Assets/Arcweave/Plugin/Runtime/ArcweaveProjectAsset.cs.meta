@@ -3,16 +3,10 @@ guid: 0ce372e11555dd74a9f16172c7054bf8
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - projectJsonFile: {fileID: 4900000, guid: 47dd9736a7f42c046b59d1420088506f, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 148326
-  packageName: Arcweave for Unity
-  packageVersion: 2.0
-  assetPath: Assets/Arcweave/Plugin/Runtime/ArcweaveProjectAsset.cs
-  uploadId: 653702

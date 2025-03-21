@@ -8856,14 +8856,13 @@ MonoBehaviour:
   importerUI: {fileID: 939519319}
   playerController: {fileID: 289867024}
   cameraController: {fileID: 330585548}
-  characterWithAnimator: {fileID: 0}
+  characterWithAnimator: {fileID: 289867023}
   quitButton: {fileID: 1896460837}
-  sceneController: {fileID: 723252308}
   messageText: {fileID: 674497895}
   messageDisplayTime: 2
   dialogueEndTag: dialogue_end
   dialogueStartTag: dialogue_start
-  debugMode: 0
+  debugMode: 1
 --- !u!4 &723252307
 Transform:
   m_ObjectHideFlags: 0
@@ -9460,7 +9459,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1736513826420221485, guid: 2211ee9ecc418d64c8104524e0fc4db7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6205130611699008066, guid: 2211ee9ecc418d64c8104524e0fc4db7, type: 3}
       propertyPath: m_Pivot.x
@@ -10984,7 +10983,7 @@ MonoBehaviour:
   arcweaveAsset: {fileID: 11400000, guid: c940cd6f0e2e0c447be8e20567cba17d, type: 2}
   apiKey: T3GiLkNM6z0KlTCPVLHqAzhWI2796u0h4DI5WBIWk0zp2rZsR7Kv9FhbwW6M
   projectHash: Qz0Pz85EYa
-  localJsonFilePath: Assets/arcweave/project.json
+  localJsonFilePath: arcweave/project.json
   onImportStarted:
     m_PersistentCalls:
       m_Calls: []
@@ -12734,7 +12733,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press Esc or Backspace to pause
+  m_text: Press Esc to open menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -17938,7 +17937,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1736513826420221485, guid: 2211ee9ecc418d64c8104524e0fc4db7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6205130611699008066, guid: 2211ee9ecc418d64c8104524e0fc4db7, type: 3}
       propertyPath: m_Pivot.x

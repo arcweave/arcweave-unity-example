@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     public ThirdPersonCamera cameraController;
     public GameObject characterWithAnimator;
     public Button quitButton;
-    public ArcweaveSceneController sceneController;
+
 
     [Header("Message UI")]
     public TextMeshProUGUI messageText;  
@@ -125,7 +125,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         // Handle pause menu toggle with Escape or Backspace
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
         }

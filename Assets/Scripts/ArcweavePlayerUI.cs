@@ -361,7 +361,6 @@ namespace Arcweave
             
             var compImage = element.GetFirstComponentCoverImage();
             
-        
             if (compImage != null) 
             {
                 componentCover.gameObject.SetActive(true);

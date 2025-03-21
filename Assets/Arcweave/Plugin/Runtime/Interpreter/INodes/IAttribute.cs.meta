@@ -9,10 +9,3 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 148326
-  packageName: Arcweave for Unity
-  packageVersion: 2.0
-  assetPath: Assets/Arcweave/Plugin/Runtime/Interpreter/INodes/IAttribute.cs
-  uploadId: 653702

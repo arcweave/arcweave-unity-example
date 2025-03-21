@@ -27,7 +27,7 @@ namespace Arcweave.Project
             this.filePath = filePath;
         }
 
-        ///<summary>Resolves the image from Resources, StreamingAssets, or build folder.</summary>
+        ///<summary>Resolves the image from Resources or build folder.</summary>
         public Texture2D ResolveImage() {
             var imageName = System.IO.Path.GetFileNameWithoutExtension(filePath);
             
@@ -42,12 +42,6 @@ namespace Arcweave.Project
                 return _cachedImage;
             }
             
-            // Try to load from StreamingAssets
-            string streamingAssetsImagePath = System.IO.Path.Combine(Application.streamingAssetsPath, "arcweave/images", System.IO.Path.GetFileName(filePath));
-            if (File.Exists(streamingAssetsImagePath)) {
-                return LoadImageFromFile(streamingAssetsImagePath, imageName);
-            }
-            
             // Try to load from build folder
             string buildFolderPath = Application.isEditor ? 
                 Application.dataPath.Replace("/Assets", "") : 
@@ -59,7 +53,7 @@ namespace Arcweave.Project
             }
             
             // If we get here, the image wasn't found
-            Debug.LogWarning($"Image not found: {imageName}. Tried Resources, StreamingAssets, and build folder.");
+            Debug.LogWarning($"Image not found: {imageName}. Tried Resources and build folder.");
             return null;
         }
         

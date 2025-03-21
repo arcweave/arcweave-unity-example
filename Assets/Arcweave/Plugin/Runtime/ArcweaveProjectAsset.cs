@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Arcweave
@@ -37,17 +37,6 @@ namespace Arcweave
             if ( importSource == ImportSource.FromWeb && !string.IsNullOrEmpty(userAPIKey) ) {
                 SendWebRequest((j) => MakeProject(j, callback));
             }
-        }
-
-        ///<summary>Import project directly from a JSON string and get callback when finished.</summary>
-        public void MakeProjectFromJson(string jsonContent, System.Action callback = null) {
-            if (string.IsNullOrEmpty(jsonContent)) {
-                Debug.LogError("JSON content is empty or null");
-                if (callback != null) { callback(); }
-                return;
-            }
-            
-            MakeProject(jsonContent, callback);
         }
 
         //...

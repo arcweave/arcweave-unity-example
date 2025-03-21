@@ -422,4 +422,91 @@ public class DialogueTrigger : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, triggerDistance);
     }
+    
+    /// <summary>
+    /// Refreshes the board reference when a new project is loaded
+    /// </summary>
+    public void RefreshBoardReference()
+    {
+        if (arcweavePlayer == null || arcweavePlayer.aw == null || arcweavePlayer.aw.Project == null)
+        {
+            Debug.LogWarning("Cannot refresh board reference: ArcweavePlayer or Project is null");
+            return;
+        }
+        
+        // Try to find the specified board by name in the new project
+        Board targetBoard = null;
+        
+        if (!string.IsNullOrEmpty(specificBoardName))
+        {
+            targetBoard = FindBoardByName(specificBoardName);
+            
+            if (targetBoard != null)
+            {
+                Debug.Log($"Found specific board '{specificBoardName}' for dialogue trigger {gameObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"Specific board '{specificBoardName}' not found for dialogue trigger {gameObject.name}");
+            }
+        }
+        
+        // If specific board not found, try fallback board
+        if (targetBoard == null && !string.IsNullOrEmpty(fallbackBoardName))
+        {
+            targetBoard = FindBoardByName(fallbackBoardName);
+            
+            if (targetBoard != null)
+            {
+                Debug.Log($"Using fallback board '{fallbackBoardName}' for dialogue trigger {gameObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"Fallback board '{fallbackBoardName}' not found for dialogue trigger {gameObject.name}");
+            }
+        }
+        
+        // If no specific or fallback board, try to use the first board in the project
+        if (targetBoard == null && arcweavePlayer.aw.Project.boards != null && arcweavePlayer.aw.Project.boards.Count > 0)
+        {
+            targetBoard = arcweavePlayer.aw.Project.boards.First();
+            Debug.LogWarning($"Using first available board for dialogue trigger {gameObject.name}");
+        }
+        
+        // If we still don't have a board, log an error
+        if (targetBoard == null)
+        {
+            Debug.LogError($"No valid board found for dialogue trigger {gameObject.name}. Dialogue won't work.");
+        }
+        else if (debugMode)
+        {
+            Debug.Log($"Board reference refreshed for dialogue trigger {gameObject.name}");
+        }
+    }
+    
+    /// <summary>
+    /// Finds a board by name in the current project
+    /// </summary>
+    private Board FindBoardByName(string boardName)
+    {
+        if (string.IsNullOrEmpty(boardName) || arcweavePlayer == null || arcweavePlayer.aw == null || arcweavePlayer.aw.Project == null)
+        {
+            return null;
+        }
+        
+        if (arcweavePlayer.aw.Project.boards == null)
+        {
+            return null;
+        }
+        
+        foreach (var board in arcweavePlayer.aw.Project.boards)
+        {
+            if (board != null && board.Name == boardName)
+            {
+                return board;
+            }
+        }
+        
+        return null;
+    }
 }

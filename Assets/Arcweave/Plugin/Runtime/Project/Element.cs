@@ -37,9 +37,15 @@ namespace Arcweave.Project
         ///The number of visits to this element
         public int Visits { get; set; }
 
-        void INode.InitializeInProject(Project project) { Project = project; }
+        void INode.InitializeInProject(Project project)
+        {
+            Project = project;
+            foreach (var attribute in Attributes)    
+            {
+                attribute.InitializeInProject(project);
+            }
+        }
         Path INode.ResolvePath(Path p) {
-            if ( string.IsNullOrEmpty(p.label) ) { p.label = Title; }
             p.TargetElement = this;
             return p;
         }
@@ -99,6 +105,11 @@ namespace Arcweave.Project
             return component != null;
         }
 
+        ///<summary>Returns the cover image if exists, otherwise the first component image.</summary>
+        public Texture2D GetCoverOrFirstComponentImage() {
+            var result = GetCoverImage();
+            return result != null ? result : GetFirstComponentCoverImage();
+        }
         ///<summary>Returns a Texture2D asset by the same image name as the one used in Arcweave and loaded from a "Resources" asset folder.</summary>
         public Texture2D GetCoverImage() => cover?.ResolveImage();
         ///<summary>Returns a Texture2D asset of the first component attached to the element by the same image name as the one used in Arcweave and loaded from a "Resources" asset folder.</summary>

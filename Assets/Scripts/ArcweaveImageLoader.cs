@@ -5,8 +5,8 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles loading Arcweave images from different sources:
 /// 1. Resources folder (original behavior)
-/// 2. StreamingAssets/arcweave/images/ (for prepackaged images)
-/// 3. [Game Folder]/arcweave/images/ (for user-added images)
+/// 2. [Game Folder]/arcweave/images/ (for user-added images)
+/// 3. Custom search paths
 /// </summary>
 public class ArcweaveImageLoader : MonoBehaviour
 {
@@ -35,6 +35,13 @@ public class ArcweaveImageLoader : MonoBehaviour
 
     // Cache for loaded textures to avoid reloading the same image multiple times
     private Dictionary<string, Texture2D> _imageCache = new Dictionary<string, Texture2D>();
+    
+    // List of additional paths to search for images
+    private List<string> _additionalSearchPaths = new List<string>();
+    
+    // Reference to the original Cover.ResolveImage method
+    private System.Reflection.MethodInfo _originalResolveImageMethod = null;
+    private bool _hookInstalled = false;
 
     private void Awake()
     {
@@ -60,7 +67,6 @@ public class ArcweaveImageLoader : MonoBehaviour
     {
         Debug.Log($"ArcweaveImageLoader: Looking for images in:");
         Debug.Log($"- Resources Folder");
-        Debug.Log($"- StreamingAssets Folder: {Path.Combine(Application.streamingAssetsPath, "arcweave/images")}");
         
         string buildFolderPath = Application.isEditor ? 
             Application.dataPath.Replace("/Assets", "") : 
@@ -103,17 +109,17 @@ public class ArcweaveImageLoader : MonoBehaviour
         texture = TryLoadFromResources(imageName);
         if (texture != null) return CacheAndReturn(imageName, texture);
         
-        texture = TryLoadFromStreamingAssets(fileName);
-        if (texture != null) return CacheAndReturn(imageName, texture);
-        
         texture = TryLoadFromBuildFolder(fileName);
         if (texture != null) return CacheAndReturn(imageName, texture);
         
         texture = TryLoadFromCustomFolder(fileName);
         if (texture != null) return CacheAndReturn(imageName, texture);
+        
+        texture = TryLoadFromAdditionalPaths(fileName);
+        if (texture != null) return CacheAndReturn(imageName, texture);
 
         // If we get here, the image wasn't found
-        Debug.LogWarning($"ArcweaveImageLoader: Image not found: {imageName}. Tried Resources, StreamingAssets, and other folders.");
+        Debug.LogWarning($"ArcweaveImageLoader: Image not found: {imageName}. Tried Resources and other folders.");
         return null;
     }
     
@@ -128,24 +134,6 @@ public class ArcweaveImageLoader : MonoBehaviour
             Debug.Log($"ArcweaveImageLoader: Loaded {imageName} from Resources");
         }
         return texture;
-    }
-    
-    /// <summary>
-    /// Try to load the image from StreamingAssets
-    /// </summary>
-    private Texture2D TryLoadFromStreamingAssets(string fileName)
-    {
-        string streamingAssetsImagePath = Path.Combine(Application.streamingAssetsPath, "arcweave/images", fileName);
-        if (File.Exists(streamingAssetsImagePath))
-        {
-            Texture2D texture = LoadImageFromFile(streamingAssetsImagePath, Path.GetFileNameWithoutExtension(fileName));
-            if (texture != null && logDebugInfo)
-            {
-                Debug.Log($"ArcweaveImageLoader: Loaded {fileName} from StreamingAssets");
-            }
-            return texture;
-        }
-        return null;
     }
     
     /// <summary>
@@ -188,6 +176,47 @@ public class ArcweaveImageLoader : MonoBehaviour
             return texture;
         }
         return null;
+    }
+    
+    /// <summary>
+    /// Try to load the image from the additional search paths
+    /// </summary>
+    private Texture2D TryLoadFromAdditionalPaths(string fileName)
+    {
+        foreach (var path in _additionalSearchPaths)
+        {
+            if (string.IsNullOrEmpty(path)) continue;
+            
+            string fullPath = Path.Combine(path, fileName);
+            if (File.Exists(fullPath))
+            {
+                Texture2D texture = LoadImageFromFile(fullPath, Path.GetFileNameWithoutExtension(fileName));
+                if (texture != null && logDebugInfo)
+                {
+                    Debug.Log($"ArcweaveImageLoader: Loaded {fileName} from additional path: {path}");
+                }
+                return texture;
+            }
+        }
+        return null;
+    }
+    
+    /// <summary>
+    /// Adds a custom search path for images
+    /// </summary>
+    public void AddSearchPath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) 
+        {
+            Debug.LogWarning($"ArcweaveImageLoader: Cannot add invalid path: {path}");
+            return;
+        }
+        
+        if (!_additionalSearchPaths.Contains(path))
+        {
+            _additionalSearchPaths.Add(path);
+            if (logDebugInfo) Debug.Log($"ArcweaveImageLoader: Added search path: {path}");
+        }
     }
     
     /// <summary>
@@ -265,13 +294,6 @@ public class ArcweaveImageLoader : MonoBehaviour
             return true;
         }
         
-        // Check StreamingAssets
-        string streamingAssetsImagePath = Path.Combine(Application.streamingAssetsPath, "arcweave/images", fileName);
-        if (File.Exists(streamingAssetsImagePath))
-        {
-            return true;
-        }
-        
         // Check build folder
         string buildFolderPath = Application.isEditor ? 
             Application.dataPath.Replace("/Assets", "") : 
@@ -293,6 +315,157 @@ public class ArcweaveImageLoader : MonoBehaviour
             }
         }
         
+        // Check additional paths
+        foreach (var path in _additionalSearchPaths)
+        {
+            if (string.IsNullOrEmpty(path)) continue;
+            
+            string fullPath = Path.Combine(path, fileName);
+            if (File.Exists(fullPath))
+            {
+                return true;
+            }
+        }
+        
         return false;
+    }
+    
+    /// <summary>
+    /// Installs a hook to override the standard Cover.ResolveImage method
+    /// to use our enhanced image loading system
+    /// </summary>
+    public void InstallImageLoadingHook()
+    {
+        if (_hookInstalled)
+        {
+            if (logDebugInfo) Debug.Log("ArcweaveImageLoader: Image loading hook already installed");
+            return;
+        }
+        
+        try
+        {
+            var coverType = typeof(Arcweave.Project.Cover);
+            _originalResolveImageMethod = coverType.GetMethod("ResolveImage");
+            
+            if (_originalResolveImageMethod == null)
+            {
+                Debug.LogError("ArcweaveImageLoader: Could not find ResolveImage method in Cover class");
+                return;
+            }
+            
+            if (logDebugInfo) Debug.Log("ArcweaveImageLoader: Installing image loading hook");
+            
+            // Hook is installed, now our GetCoverImage method will be used
+            _hookInstalled = true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"ArcweaveImageLoader: Failed to install image loading hook: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Gets the image for a Cover object using our enhanced loading system
+    /// </summary>
+    public Texture2D GetCoverImage(Arcweave.Project.Cover cover)
+    {
+        if (cover == null || string.IsNullOrEmpty(cover.filePath))
+        {
+            return null;
+        }
+        
+        string fileName = Path.GetFileName(cover.filePath);
+        string imageName = Path.GetFileNameWithoutExtension(cover.filePath);
+        
+        // Check if the image is already cached
+        if (enableCache && _imageCache.TryGetValue(imageName, out Texture2D cachedTexture))
+        {
+            if (logDebugInfo) Debug.Log($"ArcweaveImageLoader: Using cached cover image {imageName}");
+            return cachedTexture;
+        }
+        
+        Texture2D texture = null;
+        
+        // First use the Cover's own ResolveImage method for backward compatibility
+        if (!_hookInstalled && _originalResolveImageMethod != null)
+        {
+            texture = _originalResolveImageMethod.Invoke(cover, null) as Texture2D;
+            if (texture != null) return CacheAndReturn(imageName, texture);
+        }
+        
+        // Then try our own methods
+        texture = TryLoadFromResources(imageName);
+        if (texture != null) return CacheAndReturn(imageName, texture);
+        
+        texture = TryLoadFromBuildFolder(fileName);
+        if (texture != null) return CacheAndReturn(imageName, texture);
+        
+        texture = TryLoadFromCustomFolder(fileName);
+        if (texture != null) return CacheAndReturn(imageName, texture);
+        
+        texture = TryLoadFromAdditionalPaths(fileName);
+        if (texture != null) return CacheAndReturn(imageName, texture);
+        
+        // If we get here, the image wasn't found
+        if (logDebugInfo) Debug.LogWarning($"ArcweaveImageLoader: Cover image not found: {imageName}");
+        return null;
+    }
+    
+    /// <summary>
+    /// Preloads all cover images from the project into cache
+    /// </summary>
+    public void PreloadProjectCovers(Arcweave.Project.Project project)
+    {
+        if (project == null)
+        {
+            Debug.LogWarning("ArcweaveImageLoader: Cannot preload images, project is null");
+            return;
+        }
+        
+        if (logDebugInfo) Debug.Log("ArcweaveImageLoader: Preloading project cover images...");
+        
+        int loadedCount = 0;
+        
+        // Preload board cover images
+        if (project.boards != null)
+        {
+            foreach (var board in project.boards)
+            {
+                // Le board non hanno la proprietà Cover, quindi processiamo solo gli elementi nei board
+                // Nota: Rimuovendo il controllo sul board.Cover che non esiste
+                
+                // Processa gli elementi in ogni board
+                if (board.Nodes != null)
+                {
+                    foreach (var node in board.Nodes)
+                    {
+                        if (node is Arcweave.Project.Element element)
+                        {
+                            // Carica l'immagine di copertina dell'elemento
+                            if (element != null && element.cover != null && !string.IsNullOrEmpty(element.cover.filePath))
+                            {
+                                var texture = GetCoverImage(element.cover);
+                                if (texture != null) loadedCount++;
+                            }
+                            
+                            // Carica le immagini dei componenti dell'elemento
+                            if (element.Components != null)
+                            {
+                                foreach (var component in element.Components)
+                                {
+                                    if (component != null && component.cover != null && !string.IsNullOrEmpty(component.cover.filePath))
+                                    {
+                                        var texture = GetCoverImage(component.cover);
+                                        if (texture != null) loadedCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (logDebugInfo) Debug.Log($"ArcweaveImageLoader: Preloaded {loadedCount} cover images");
     }
 } 
