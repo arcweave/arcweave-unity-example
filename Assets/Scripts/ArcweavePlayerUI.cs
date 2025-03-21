@@ -250,6 +250,9 @@ namespace Arcweave
             // Set up content text
             UpdateContentText(element);
             
+            // Handle cover image
+            HandleCoverImage(element);
+            
             // Handle component cover image
             HandleComponentCoverImage(element);
             
@@ -296,6 +299,60 @@ namespace Arcweave
         }
 
         /// <summary>
+        /// Handles the cover image display
+        /// </summary>
+        private void HandleCoverImage(Element element)
+        {
+            if (cover == null) return;
+            
+            var coverImage = element.GetCoverImage();
+            
+            if (coverImage != null) 
+            {
+                cover.gameObject.SetActive(true);
+                cover.texture = coverImage;
+                
+                if (animateTextEntries)
+                {
+                    cover.canvasRenderer.SetAlpha(0);
+                    cover.CrossFadeAlpha(1f, crossfadeTime, false);
+                }
+                else
+                {
+                    cover.canvasRenderer.SetAlpha(1f);
+                }
+            } 
+            else 
+            {
+                if (cover.gameObject.activeInHierarchy)
+                {
+                    if (animateTextEntries)
+                    {
+                        cover.canvasRenderer.SetAlpha(1);
+                        cover.CrossFadeAlpha(0f, crossfadeTime, false);
+                        // Hide after fade animation completes
+                        Invoke("HideCover", crossfadeTime);
+                    }
+                    else
+                    {
+                        cover.gameObject.SetActive(false);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Helper method to hide cover after animation
+        /// </summary>
+        private void HideCover()
+        {
+            if (cover != null)
+            {
+                cover.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
         /// Handles the component cover image display
         /// </summary>
         private void HandleComponentCoverImage(Element element)
@@ -304,10 +361,7 @@ namespace Arcweave
             
             var compImage = element.GetFirstComponentCoverImage();
             
-            // Nota: Il caricamento tramite ArcweaveImageLoader è stato rimosso perché
-            // non è possibile accedere alla classe nel contesto attuale.
-            // GetFirstComponentCoverImage() dovrebbe già fornire l'immagine quando disponibile.
-            
+        
             if (compImage != null) 
             {
                 componentCover.gameObject.SetActive(true);

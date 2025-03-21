@@ -7,7 +7,7 @@ using System.Collections.Generic;
 public class ArcweaveBuildProcessor
 {
     private const string DEFAULT_JSON_SOURCE_PATH = "Assets/Arcweave/project.json";
-    private const string DEFAULT_IMAGES_SOURCE_FOLDER = "Assets/Arcweave/images";
+    private const string DEFAULT_IMAGES_SOURCE_FOLDER = "Assets/Resources";
     private const string STREAMING_ASSETS_FOLDER = "Assets/StreamingAssets";
     private const string ARCWEAVE_FOLDER = "arcweave";
     private const string IMAGES_FOLDER = "images";

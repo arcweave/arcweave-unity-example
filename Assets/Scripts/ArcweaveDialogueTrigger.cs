@@ -27,11 +27,16 @@ public class DialogueTrigger : MonoBehaviour
     [Header("Debug Settings")]
     public bool debugMode = false;
     
+    [Header("Character Animation")]
+    public bool controlPlayerAnimator = true;
+    public string inDialogueParameterName = "IsInDialogue";
+    
     // Private variables
     private GameObject player;
     private bool canInteract = false;
     private bool isInDialogue = false;
     private bool isInitialized = false;
+    private Animator playerAnimator;
     
     void Start()
     {
@@ -52,6 +57,15 @@ public class DialogueTrigger : MonoBehaviour
             if (player == null)
             {
                 Debug.LogWarning("Player not found! Make sure a GameObject with the 'Player' tag exists.");
+            }
+            else if (controlPlayerAnimator)
+            {
+                // Find player animator if we need to control it
+                playerAnimator = player.GetComponent<Animator>();
+                if (playerAnimator == null)
+                {
+                    Debug.LogWarning("Player Animator not found on Player GameObject!");
+                }
             }
         }
         
@@ -163,6 +177,17 @@ public class DialogueTrigger : MonoBehaviour
         
         isInDialogue = true;
         
+        // Update player animator parameter
+        if (controlPlayerAnimator && playerAnimator != null)
+        {
+            playerAnimator.SetBool(inDialogueParameterName, true);
+            
+            if (debugMode)
+            {
+                Debug.Log($"Set player animator parameter '{inDialogueParameterName}' to true");
+            }
+        }
+        
         if (debugMode)
         {
             Debug.Log($"Starting dialogue with {gameObject.name}");
@@ -193,6 +218,17 @@ public class DialogueTrigger : MonoBehaviour
         if (!isInDialogue) return;
         
         isInDialogue = false;
+        
+        // Update player animator parameter
+        if (controlPlayerAnimator && playerAnimator != null)
+        {
+            playerAnimator.SetBool(inDialogueParameterName, false);
+            
+            if (debugMode)
+            {
+                Debug.Log($"Set player animator parameter '{inDialogueParameterName}' to false");
+            }
+        }
         
         if (debugMode)
         {
