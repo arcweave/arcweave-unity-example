@@ -29,6 +29,12 @@ namespace Arcweave.Project
 
         ///<summary>Resolves the image from Resources or build folder.</summary>
         public Texture2D ResolveImage() {
+            // Check if filePath is null or empty
+            if (string.IsNullOrEmpty(filePath)) {
+                Debug.LogWarning("Cover image file path is null or empty");
+                return null;
+            }
+
             var imageName = System.IO.Path.GetFileNameWithoutExtension(filePath);
             
             // Return cached image if already loaded

@@ -102,12 +102,11 @@ namespace Arcweave
                 saveButton.onClick.AddListener(Save);
             }
             
-            if (loadButton != null)
-            {
-                loadButton.onClick.RemoveAllListeners();
-                loadButton.onClick.AddListener(Load);
-                loadButton.gameObject.SetActive(PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY + "_currentElement"));
-            }
+            // Auto-activation of load button (disabled)
+            // if (loadButton != null)
+            // {
+            //     loadButton.gameObject.SetActive(PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY + "_currentElement"));
+            // }
         }
         
         /// <summary>
@@ -200,10 +199,11 @@ namespace Arcweave
             
             player.Save();
             
-            if (loadButton != null) 
-            {
-                loadButton.gameObject.SetActive(true);
-            }
+            // Auto-activation of load button (disabled)
+            // if (loadButton != null) 
+            // {
+            //     loadButton.gameObject.SetActive(true);
+            // }
             
             Debug.Log("Arcweave state saved");
         }
