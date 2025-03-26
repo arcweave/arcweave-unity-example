@@ -14,44 +14,44 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   importSource: 0
   projectJsonFile: {fileID: 4900000, guid: 47dd9736a7f42c046b59d1420088506f, type: 3}
-  userAPIKey: T3GiLkNM6z0KlTCPVLHqAzhWI2796u0h4DI5WBIWk0zp2rZsR7Kv9FhbwW6M
-  projectHash: Qz0Pz85EYa
+  userAPIKey: 
+  projectHash: 
   <Project>k__BackingField:
     <name>k__BackingField: Unity Demo
     <boards>k__BackingField:
-    - rid: 957030916260626938
-    - rid: 957030916260626939
-    - rid: 957030916260626940
+    - rid: 957030916260627134
+    - rid: 957030916260627135
+    - rid: 957030916260627136
     <components>k__BackingField:
-    - rid: 957030916260626941
-    - rid: 957030916260626942
-    - rid: 957030916260626943
-    - rid: 957030916260626944
+    - rid: 957030916260627137
+    - rid: 957030916260627138
+    - rid: 957030916260627139
+    - rid: 957030916260627140
     <Variables>k__BackingField:
-    - rid: 957030916260626945
-    - rid: 957030916260626946
-    - rid: 957030916260626947
+    - rid: 957030916260627141
+    - rid: 957030916260627142
+    - rid: 957030916260627143
     _startingElementId: 5bb43181-eebd-40b8-9561-2e58223c6016
   references:
     version: 2
     RefIds:
-    - rid: 957030916260626938
+    - rid: 957030916260627134
       type: {class: Board, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 1c11fa2a-f76c-4be7-aac4-6bf92a63240f
         <Name>k__BackingField: Healer Dialogue
         <Nodes>k__BackingField:
-        - rid: 957030916260626948
-        - rid: 957030916260626949
-        - rid: 957030916260626950
-        - rid: 957030916260626951
-        - rid: 957030916260626952
-        - rid: 957030916260626953
-        - rid: 957030916260626954
-        - rid: 957030916260626955
-        - rid: 957030916260626956
-        - rid: 957030916260626957
-        - rid: 957030916260626958
+        - rid: 957030916260627144
+        - rid: 957030916260627145
+        - rid: 957030916260627146
+        - rid: 957030916260627147
+        - rid: 957030916260627148
+        - rid: 957030916260627149
+        - rid: 957030916260627150
+        - rid: 957030916260627151
+        - rid: 957030916260627152
+        - rid: 957030916260627153
+        - rid: 957030916260627154
         <Notes>k__BackingField:
         - <Pos>k__BackingField: {x: 9968, y: 10401}
           <RawContent>k__BackingField: '<p>We''ve given dialogue starting elements
@@ -68,17 +68,17 @@ MonoBehaviour:
             only.</p><p>Right click these elements and choose "Properties," to see
             the tag attribute.</p>'
           <ColorTheme>k__BackingField: cyan
-    - rid: 957030916260626939
+    - rid: 957030916260627135
       type: {class: Board, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 449db8e2-4a21-4a73-aece-f0435e7319fb
         <Name>k__BackingField: Starting Board
         <Nodes>k__BackingField:
-        - rid: 957030916260626959
-        - rid: 957030916260626960
-        - rid: 957030916260626961
-        - rid: 957030916260626962
-        - rid: 957030916260626963
+        - rid: 957030916260627155
+        - rid: 957030916260627156
+        - rid: 957030916260627157
+        - rid: 957030916260627158
+        - rid: 957030916260627159
         <Notes>k__BackingField:
         - <Pos>k__BackingField: {x: 9760, y: 10340}
           <RawContent>k__BackingField: <p>This is the starting element for Arcweave's
@@ -92,35 +92,35 @@ MonoBehaviour:
             <strong>character component</strong> attached.</p><p><em>We are using
             this solution in the Godot &amp; Unity demo games.</em></p>"
           <ColorTheme>k__BackingField: pink
-    - rid: 957030916260626940
+    - rid: 957030916260627136
       type: {class: Board, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: ef8116b9-c38d-473d-9c0a-600bc37a010d
         <Name>k__BackingField: Wanda Dialogue
         <Nodes>k__BackingField:
-        - rid: 957030916260626964
-        - rid: 957030916260626965
-        - rid: 957030916260626966
-        - rid: 957030916260626967
-        - rid: 957030916260626968
-        - rid: 957030916260626969
-        - rid: 957030916260626970
-        - rid: 957030916260626971
-        - rid: 957030916260626972
-        - rid: 957030916260626973
-        - rid: 957030916260626974
-        - rid: 957030916260626975
-        - rid: 957030916260626976
-        - rid: 957030916260626977
-        - rid: 957030916260626978
-        - rid: 957030916260626979
-        - rid: 957030916260626980
-        - rid: 957030916260626981
-        - rid: 957030916260626982
-        - rid: 957030916260626983
-        - rid: 957030916260626984
-        - rid: 957030916260626985
-        - rid: 957030916260626986
+        - rid: 957030916260627160
+        - rid: 957030916260627161
+        - rid: 957030916260627162
+        - rid: 957030916260627163
+        - rid: 957030916260627164
+        - rid: 957030916260627165
+        - rid: 957030916260627166
+        - rid: 957030916260627167
+        - rid: 957030916260627168
+        - rid: 957030916260627169
+        - rid: 957030916260627170
+        - rid: 957030916260627171
+        - rid: 957030916260627172
+        - rid: 957030916260627173
+        - rid: 957030916260627174
+        - rid: 957030916260627175
+        - rid: 957030916260627176
+        - rid: 957030916260627177
+        - rid: 957030916260627178
+        - rid: 957030916260627179
+        - rid: 957030916260627180
+        - rid: 957030916260627181
+        - rid: 957030916260627182
         <Notes>k__BackingField:
         - <Pos>k__BackingField: {x: 9720, y: 10300}
           <RawContent>k__BackingField: '<p>We''ve given dialogue starting elements
@@ -140,7 +140,7 @@ MonoBehaviour:
         - <Pos>k__BackingField: {x: 10750, y: 10230}
           <RawContent>k__BackingField: 
           <ColorTheme>k__BackingField: default
-    - rid: 957030916260626941
+    - rid: 957030916260627137
       type: {class: Component, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 3846c37c-07a1-4c04-98e2-26cd026295d1
@@ -173,7 +173,7 @@ MonoBehaviour:
         <cover>k__BackingField:
           <type>k__BackingField: 1
           <filePath>k__BackingField: player.png
-    - rid: 957030916260626942
+    - rid: 957030916260627138
       type: {class: Component, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 5feea546-dde8-4445-b8a1-29194c6ff0d5
@@ -207,7 +207,7 @@ MonoBehaviour:
         <cover>k__BackingField:
           <type>k__BackingField: 1
           <filePath>k__BackingField: delapouite/sun-cloud
-    - rid: 957030916260626943
+    - rid: 957030916260627139
       type: {class: Component, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 647349ca-9ebb-4d5f-b81e-500761ec1c5a
@@ -240,7 +240,7 @@ MonoBehaviour:
         <cover>k__BackingField:
           <type>k__BackingField: 1
           <filePath>k__BackingField: wanda.png
-    - rid: 957030916260626944
+    - rid: 957030916260627140
       type: {class: Component, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 82820a96-708d-4a05-b2aa-21e8d582d5de
@@ -273,28 +273,28 @@ MonoBehaviour:
         <cover>k__BackingField:
           <type>k__BackingField: 1
           <filePath>k__BackingField: healer.png
-    - rid: 957030916260626945
+    - rid: 957030916260627141
       type: {class: Variable, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Name>k__BackingField: have_potion
         valueSerialized: bFalse
         _typeName: System.Boolean
         defaultValueSerialized: bFalse
-    - rid: 957030916260626946
+    - rid: 957030916260627142
       type: {class: Variable, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Name>k__BackingField: healer_health
         valueSerialized: i90
         _typeName: System.Int32
         defaultValueSerialized: i90
-    - rid: 957030916260626947
+    - rid: 957030916260627143
       type: {class: Variable, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Name>k__BackingField: wanda_health
         valueSerialized: i20
         _typeName: System.Int32
         defaultValueSerialized: i20
-    - rid: 957030916260626948
+    - rid: 957030916260627144
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 540d5fc7-aa78-4b1a-8c11-bc2d4dc24ba9
@@ -305,7 +305,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -315,10 +315,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626948
+            rid: 957030916260627144
           <Target>k__BackingField:
-            rid: 957030916260626950
-    - rid: 957030916260626949
+            rid: 957030916260627146
+    - rid: 957030916260627145
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: ddc209cc-7832-4ff6-ae1f-4eea592d07d4
@@ -328,7 +328,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: cyan
         <Components>k__BackingField:
-        - rid: 957030916260626944
+        - rid: 957030916260627140
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -354,17 +354,17 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626949
+            rid: 957030916260627145
           <Target>k__BackingField:
-            rid: 957030916260626955
+            rid: 957030916260627151
         - <Id>k__BackingField: 993d8d9a-ff84-48eb-b531-7b9b2d37cb91
           <RawLabel>k__BackingField: <p>"I'm sorry, wrong turn."</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626949
+            rid: 957030916260627145
           <Target>k__BackingField:
-            rid: 957030916260626953
-    - rid: 957030916260626950
+            rid: 957030916260627149
+    - rid: 957030916260627146
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: d852a577-bd1f-44cf-8187-77a86f97baef
@@ -375,7 +375,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626944
+        - rid: 957030916260627140
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -393,10 +393,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626950
+            rid: 957030916260627146
           <Target>k__BackingField:
-            rid: 957030916260626956
-    - rid: 957030916260626951
+            rid: 957030916260627152
+    - rid: 957030916260627147
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: e14fa106-d418-4935-ab44-0de013995605
@@ -406,7 +406,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: brown
         <Components>k__BackingField:
-        - rid: 957030916260626944
+        - rid: 957030916260627140
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -424,10 +424,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626951
+            rid: 957030916260627147
           <Target>k__BackingField:
-            rid: 957030916260626956
-    - rid: 957030916260626952
+            rid: 957030916260627152
+    - rid: 957030916260627148
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: a8965b1b-4841-427e-8cf5-d8eda2f59bf2
@@ -438,7 +438,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: brown
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -448,10 +448,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626952
+            rid: 957030916260627148
           <Target>k__BackingField:
-            rid: 957030916260626951
-    - rid: 957030916260626953
+            rid: 957030916260627147
+    - rid: 957030916260627149
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 9c3607e5-4fb7-49db-ac8d-ccd7a1bf6d56
@@ -461,7 +461,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: brown
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -471,10 +471,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626953
+            rid: 957030916260627149
           <Target>k__BackingField:
-            rid: 957030916260626954
-    - rid: 957030916260626954
+            rid: 957030916260627150
+    - rid: 957030916260627150
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 3893f5e9-d85e-4e5b-9423-e02ac03eb34f
@@ -484,7 +484,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: brown
         <Components>k__BackingField:
-        - rid: 957030916260626944
+        - rid: 957030916260627140
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -502,26 +502,26 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626954
+            rid: 957030916260627150
           <Target>k__BackingField:
-            rid: 957030916260626956
-    - rid: 957030916260626955
+            rid: 957030916260627152
+    - rid: 957030916260627151
       type: {class: Branch, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: bce80b17-0165-41a2-a29d-e814f6e9f110
         <Pos>k__BackingField: {x: 10368, y: 10858}
         <Conditions>k__BackingField:
-        - rid: 957030916260626957
-        - rid: 957030916260626958
+        - rid: 957030916260627153
+        - rid: 957030916260627154
         <colorTheme>k__BackingField: default
-    - rid: 957030916260626956
+    - rid: 957030916260627152
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 49be178c-30a9-4160-b065-1a72e3626a65
         <Pos>k__BackingField: {x: 12340, y: 10820}
         <Target>k__BackingField:
-          rid: 957030916260626961
-    - rid: 957030916260626957
+          rid: 957030916260627157
+    - rid: 957030916260627153
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 66acc3a7-454a-43db-a923-1b0d3cb17805
@@ -534,10 +534,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>Ask for help</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626957
+            rid: 957030916260627153
           <Target>k__BackingField:
-            rid: 957030916260626948
-    - rid: 957030916260626958
+            rid: 957030916260627144
+    - rid: 957030916260627154
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: d24a6cbe-85fb-4059-8867-fa8ba0af6aa0
@@ -548,10 +548,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>"Can you give me another potion?"</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626958
+            rid: 957030916260627154
           <Target>k__BackingField:
-            rid: 957030916260626952
-    - rid: 957030916260626959
+            rid: 957030916260627148
+    - rid: 957030916260627155
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 9cde645d-6e9e-492b-9103-a65b60dcfd9a
@@ -563,7 +563,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: pink
         <Components>k__BackingField:
-        - rid: 957030916260626944
+        - rid: 957030916260627140
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -573,10 +573,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626959
+            rid: 957030916260627155
           <Target>k__BackingField:
-            rid: 957030916260626963
-    - rid: 957030916260626960
+            rid: 957030916260627159
+    - rid: 957030916260627156
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: e7204f2d-842a-4ab4-8aa6-349e441e4935
@@ -589,7 +589,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: pink
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -599,10 +599,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626960
+            rid: 957030916260627156
           <Target>k__BackingField:
-            rid: 957030916260626962
-    - rid: 957030916260626961
+            rid: 957030916260627158
+    - rid: 957030916260627157
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 5bb43181-eebd-40b8-9561-2e58223c6016
@@ -629,32 +629,32 @@ MonoBehaviour:
             data-type="component">Wanda Elandor</span>.</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626961
+            rid: 957030916260627157
           <Target>k__BackingField:
-            rid: 957030916260626962
+            rid: 957030916260627158
         - <Id>k__BackingField: a89eea4c-0498-419e-9b21-1ce8ddd706bf
           <RawLabel>k__BackingField: <p>Go to <span class="mention-component mention"
             data-id="82820a96-708d-4a05-b2aa-21e8d582d5de" data-label="Healer" data-type="component">Healer</span>.</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626961
+            rid: 957030916260627157
           <Target>k__BackingField:
-            rid: 957030916260626963
-    - rid: 957030916260626962
+            rid: 957030916260627159
+    - rid: 957030916260627158
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 2480e3fc-bfe3-49a6-a32d-a5ea4c9c5a22
         <Pos>k__BackingField: {x: 10840, y: 10040}
         <Target>k__BackingField:
-          rid: 957030916260626965
-    - rid: 957030916260626963
+          rid: 957030916260627161
+    - rid: 957030916260627159
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: ae78f3a6-dea3-45a5-935f-bbb45825043e
         <Pos>k__BackingField: {x: 10840, y: 10960}
         <Target>k__BackingField:
-          rid: 957030916260626949
-    - rid: 957030916260626964
+          rid: 957030916260627145
+    - rid: 957030916260627160
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: dbbbec36-4a9c-4cad-8533-c9f421a5093d
@@ -664,7 +664,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -682,10 +682,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626964
+            rid: 957030916260627160
           <Target>k__BackingField:
-            rid: 957030916260626979
-    - rid: 957030916260626965
+            rid: 957030916260627175
+    - rid: 957030916260627161
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 5265ceac-f13f-47fc-a02c-6eda7eea6b90
@@ -697,7 +697,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: cyan
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -715,24 +715,24 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>"I am glad I helped."</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626965
+            rid: 957030916260627161
           <Target>k__BackingField:
-            rid: 957030916260626974
+            rid: 957030916260627170
         - <Id>k__BackingField: 02dfbe78-ae86-4525-8af9-51a54d58193b
           <RawLabel>k__BackingField: <p>Examine her.</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626965
+            rid: 957030916260627161
           <Target>k__BackingField:
-            rid: 957030916260626976
+            rid: 957030916260627172
         - <Id>k__BackingField: 4a58bb7e-43b4-4cc9-9a84-9c05618ad8ac
           <RawLabel>k__BackingField: <p>"Hang on. I'll be back with help."</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626965
+            rid: 957030916260627161
           <Target>k__BackingField:
-            rid: 957030916260626977
-    - rid: 957030916260626966
+            rid: 957030916260627173
+    - rid: 957030916260627162
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 50ba3de5-f14b-4703-9e2e-c0b2ccb9d407
@@ -742,7 +742,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: gold
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -760,10 +760,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626966
+            rid: 957030916260627162
           <Target>k__BackingField:
-            rid: 957030916260626978
-    - rid: 957030916260626967
+            rid: 957030916260627174
+    - rid: 957030916260627163
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 63bee155-1348-4b82-a52d-24c96143c9db
@@ -773,7 +773,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: gold
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -783,17 +783,17 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626967
+            rid: 957030916260627163
           <Target>k__BackingField:
-            rid: 957030916260626975
+            rid: 957030916260627171
         - <Id>k__BackingField: 60df4786-8a65-46ee-a3e9-1df36a5e1f39
           <RawLabel>k__BackingField: <p>"I don't know what to do!"</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626967
+            rid: 957030916260627163
           <Target>k__BackingField:
-            rid: 957030916260626973
-    - rid: 957030916260626968
+            rid: 957030916260627169
+    - rid: 957030916260627164
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 045ab2b6-6d77-43f7-a7b4-e275f41667c3
@@ -804,7 +804,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -814,10 +814,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626968
+            rid: 957030916260627164
           <Target>k__BackingField:
-            rid: 957030916260626964
-    - rid: 957030916260626969
+            rid: 957030916260627160
+    - rid: 957030916260627165
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 4d7d2516-68e0-450c-a580-65c0b2616965
@@ -827,7 +827,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: gold
         <Components>k__BackingField:
-        - rid: 957030916260626943
+        - rid: 957030916260627139
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -837,10 +837,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626969
+            rid: 957030916260627165
           <Target>k__BackingField:
-            rid: 957030916260626981
-    - rid: 957030916260626970
+            rid: 957030916260627177
+    - rid: 957030916260627166
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 62d0eaea-ccd4-4020-8bf9-7b00c7397684
@@ -850,7 +850,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -868,10 +868,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626970
+            rid: 957030916260627166
           <Target>k__BackingField:
-            rid: 957030916260626980
-    - rid: 957030916260626971
+            rid: 957030916260627176
+    - rid: 957030916260627167
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: a690068b-49db-44ee-94ca-ebf4627c8141
@@ -881,7 +881,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: moss
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField:
         - <Name>k__BackingField: tag
           <Type>k__BackingField: 1
@@ -899,10 +899,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>[Back]</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626971
+            rid: 957030916260627167
           <Target>k__BackingField:
-            rid: 957030916260626980
-    - rid: 957030916260626972
+            rid: 957030916260627176
+    - rid: 957030916260627168
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 61b54b64-7376-4b5e-ae0d-cc1b390e16b7
@@ -912,7 +912,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: gold
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -922,10 +922,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626972
+            rid: 957030916260627168
           <Target>k__BackingField:
-            rid: 957030916260626966
-    - rid: 957030916260626973
+            rid: 957030916260627162
+    - rid: 957030916260627169
       type: {class: Element, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: be67a949-dd00-4460-98c9-45067f0d331f
@@ -935,7 +935,7 @@ MonoBehaviour:
         <RuntimeContent>k__BackingField: 
         <ColorTheme>k__BackingField: gold
         <Components>k__BackingField:
-        - rid: 957030916260626941
+        - rid: 957030916260627137
         <Attributes>k__BackingField: []
         <cover>k__BackingField:
           <type>k__BackingField: 0
@@ -945,71 +945,71 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626973
+            rid: 957030916260627169
           <Target>k__BackingField:
-            rid: 957030916260626969
-    - rid: 957030916260626974
+            rid: 957030916260627165
+    - rid: 957030916260627170
       type: {class: Branch, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 0d845415-33d5-4486-9514-32b88e17e6b2
         <Pos>k__BackingField: {x: 10780, y: 10400}
         <Conditions>k__BackingField:
-        - rid: 957030916260626982
+        - rid: 957030916260627178
         <colorTheme>k__BackingField: moss
-    - rid: 957030916260626975
+    - rid: 957030916260627171
       type: {class: Branch, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: b16dc6eb-d3f3-40da-b00a-3c71b17ed257
         <Pos>k__BackingField: {x: 11760, y: 10780}
         <Conditions>k__BackingField:
-        - rid: 957030916260626983
+        - rid: 957030916260627179
         <colorTheme>k__BackingField: moss
-    - rid: 957030916260626976
+    - rid: 957030916260627172
       type: {class: Branch, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 5d6f37af-3b82-484b-a3c9-5802db1c575f
         <Pos>k__BackingField: {x: 10800, y: 10700}
         <Conditions>k__BackingField:
-        - rid: 957030916260626984
-        - rid: 957030916260626985
+        - rid: 957030916260627180
+        - rid: 957030916260627181
         <colorTheme>k__BackingField: default
-    - rid: 957030916260626977
+    - rid: 957030916260627173
       type: {class: Branch, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: c995129b-2d4e-4c01-8f3d-ad66914ee2a1
         <Pos>k__BackingField: {x: 10780, y: 11220}
         <Conditions>k__BackingField:
-        - rid: 957030916260626986
+        - rid: 957030916260627182
         <colorTheme>k__BackingField: gold
-    - rid: 957030916260626978
+    - rid: 957030916260627174
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 7a7524ef-e636-4baa-99ae-582efdd902b0
         <Pos>k__BackingField: {x: 12360, y: 11500}
         <Target>k__BackingField:
-          rid: 957030916260626961
-    - rid: 957030916260626979
+          rid: 957030916260627157
+    - rid: 957030916260627175
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: d7f26011-d6d6-4c92-aa3b-3a074ff647aa
         <Pos>k__BackingField: {x: 13380, y: 10600}
         <Target>k__BackingField:
-          rid: 957030916260626961
-    - rid: 957030916260626980
+          rid: 957030916260627157
+    - rid: 957030916260627176
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 28e3009a-e164-4679-92c3-977615b1eb4b
         <Pos>k__BackingField: {x: 11920, y: 10500}
         <Target>k__BackingField:
-          rid: 957030916260626961
-    - rid: 957030916260626981
+          rid: 957030916260627157
+    - rid: 957030916260627177
       type: {class: Jumper, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 895bcae0-a11a-4d57-8cdc-82d8f95f75a6
         <Pos>k__BackingField: {x: 12880, y: 10980}
         <Target>k__BackingField:
-          rid: 957030916260626972
-    - rid: 957030916260626982
+          rid: 957030916260627168
+    - rid: 957030916260627178
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: f8e12e95-43b7-4d42-9844-5402665b24ef
@@ -1022,10 +1022,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626982
+            rid: 957030916260627178
           <Target>k__BackingField:
-            rid: 957030916260626970
-    - rid: 957030916260626983
+            rid: 957030916260627166
+    - rid: 957030916260627179
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 023d7f8c-413a-4643-8408-af6501c2cdff
@@ -1036,10 +1036,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: <p>Give her the potion.</p>
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626983
+            rid: 957030916260627179
           <Target>k__BackingField:
-            rid: 957030916260626968
-    - rid: 957030916260626984
+            rid: 957030916260627164
+    - rid: 957030916260627180
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: d9854a9f-617f-4d0f-8ccf-42f2e0419c36
@@ -1050,10 +1050,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626984
+            rid: 957030916260627180
           <Target>k__BackingField:
-            rid: 957030916260626971
-    - rid: 957030916260626985
+            rid: 957030916260627167
+    - rid: 957030916260627181
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 48d4095c-c6d2-4009-b68e-9ce92a61edd1
@@ -1064,10 +1064,10 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626985
+            rid: 957030916260627181
           <Target>k__BackingField:
-            rid: 957030916260626967
-    - rid: 957030916260626986
+            rid: 957030916260627163
+    - rid: 957030916260627182
       type: {class: Condition, ns: Arcweave.Project, asm: Assembly-CSharp}
       data:
         <Id>k__BackingField: 462433eb-bc14-49df-af13-91c19e63b65c
@@ -1078,6 +1078,6 @@ MonoBehaviour:
           <RawLabel>k__BackingField: 
           <RuntimeLabel>k__BackingField: 
           <Source>k__BackingField:
-            rid: 957030916260626986
+            rid: 957030916260627182
           <Target>k__BackingField:
-            rid: 957030916260626972
+            rid: 957030916260627168
