@@ -90,6 +90,9 @@ public class ArcweaveVariableEvents : MonoBehaviour
     /// </summary>
     private void OnImportSuccess()
     {
+        // Reset the permanent deactivation flag when project is reimported
+        objectPermanentlyDeactivated = false;
+        
         UpdateSliderColor();
         UpdateHealthFromVariable();
         UpdateObjectActivation();
@@ -100,6 +103,9 @@ public class ArcweaveVariableEvents : MonoBehaviour
     /// </summary>
     private void OnProjectFinish(Arcweave.Project.Project project)
     {
+        // Reset the permanent deactivation flag when project finishes
+        objectPermanentlyDeactivated = false;
+        
         UpdateSliderColor();
         UpdateHealthFromVariable();
         UpdateObjectActivation();
@@ -242,29 +248,35 @@ public class ArcweaveVariableEvents : MonoBehaviour
 
         try
         {
+            // If the object has been permanently deactivated, don't do anything
+            if (objectPermanentlyDeactivated)
+            {
+                // Ensure the object stays deactivated
+                if (targetObject.activeSelf)
+                {
+                    targetObject.SetActive(false);
+                }
+                return;
+            }
+            
             var activationVar = arcweavePlayer.aw.Project.GetVariable(activationVariableName);
             if (activationVar == null || activationVar.Type != typeof(bool)) return;
             
             // Invert logic: if variable is true, deactivate object
             bool shouldActivate = !(bool)activationVar.Value;
             
-            // If condition was reset, force an update
-            if (objectPermanentlyDeactivated && shouldActivate)
+            // If object is getting deactivated, set the permanent flag
+            if (targetObject.activeSelf && !shouldActivate)
             {
-                objectPermanentlyDeactivated = false;
+                objectPermanentlyDeactivated = true;
+                targetObject.SetActive(false);
+                Debug.Log($"Object '{targetObject.name}' permanently deactivated based on variable '{activationVariableName}'");
             }
-
-            // Only update if state changed
-            if (targetObject.activeSelf != shouldActivate && !objectPermanentlyDeactivated)
+            // Only activate if it wasn't permanently deactivated before
+            else if (!targetObject.activeSelf && shouldActivate && !objectPermanentlyDeactivated)
             {
-                targetObject.SetActive(shouldActivate);
-                Debug.Log($"Object '{targetObject.name}' {(shouldActivate ? "activated" : "deactivated")} based on variable '{activationVariableName}'");
-
-                // If object is deactivated, set flag to keep it deactivated
-                if (!shouldActivate)
-                {
-                    objectPermanentlyDeactivated = true;
-                }
+                targetObject.SetActive(true);
+                Debug.Log($"Object '{targetObject.name}' activated based on variable '{activationVariableName}'");
             }
         }
         catch (System.Exception e)
