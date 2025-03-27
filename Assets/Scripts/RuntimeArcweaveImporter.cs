@@ -46,19 +46,19 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         Debug.Log("RuntimeArcweaveImporter starting... Loading project from local path.");
         
-        // Load directly from local JSON file
+        // Carica direttamente il file JSON locale
         StartCoroutine(LoadLocalProjectWithDelay());
     }
     
     /// <summary>
-    /// Loads the local project with a small delay to ensure everything is initialized
+    /// Carica il progetto locale con un piccolo ritardo per assicurarsi che tutto sia inizializzato
     /// </summary>
     private IEnumerator LoadLocalProjectWithDelay()
     {
-        // Wait a moment to allow other components to initialize
+        // Attendi un attimo per consentire l'inizializzazione di altri componenti
         yield return new WaitForSeconds(0.5f);
         
-        // Try to load the local JSON file
+        // Prova a caricare il file JSON locale
         ImportFromLocalFile();
     }
     
@@ -209,9 +209,9 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         );
         AddImageSearchPath(altImagePath);
         
-        // 5. Application's persistent data path for runtime-added images
-        string persistentDataPath = Path.Combine(Application.persistentDataPath, "arcweave/images");
-        AddImageSearchPath(persistentDataPath);
+        // 5. Runtime images folder, if set up
+        string runtimeImagePath = Path.Combine(Application.streamingAssetsPath, "arcweave/images");
+        AddImageSearchPath(runtimeImagePath);
         
         // Enable debug logging temporarily to track image loading
         if (imageLoader != null)
