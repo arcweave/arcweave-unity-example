@@ -1,6 +1,9 @@
-# Arcweave Unity Demo
+# Arcweave Unity Example
 
 This project demonstrates Arcweave integration with Unity, allowing you to import Arcweave projects both during development and at runtime.
+
+![Arcweave Unity Example image](https://github.com/user-attachments/assets/f23a79a7-03c8-4d02-a899-bff6a2271c98)
+
 
 ## Features
 
