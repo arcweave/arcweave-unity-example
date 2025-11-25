@@ -9,6 +9,10 @@ using TMPro;
 /// </summary>
 public class DialogueTrigger : MonoBehaviour
 {
+    // Constants
+    private const string PLAYER_TAG = "Player";
+    private const string DEFAULT_DIALOGUE_START_TAG = "dialogue_start";
+
     [Header("Interaction Settings")]
     public float triggerDistance = 3f;
     public KeyCode interactionKey = KeyCode.E;
@@ -53,10 +57,10 @@ public class DialogueTrigger : MonoBehaviour
         // Find references if not assigned
         if (player == null)
         {
-            player = GameObject.FindGameObjectWithTag("Player");
+            player = GameObject.FindGameObjectWithTag(PLAYER_TAG);
             if (player == null)
             {
-                Debug.LogWarning("Player not found! Make sure a GameObject with the 'Player' tag exists.");
+                Debug.LogWarning($"Player not found! Make sure a GameObject with the '{PLAYER_TAG}' tag exists.");
             }
             else if (controlPlayerAnimator)
             {
@@ -71,7 +75,7 @@ public class DialogueTrigger : MonoBehaviour
         
         if (arcweavePlayer == null)
         {
-            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
             if (arcweavePlayer == null)
             {
                 Debug.LogWarning("ArcweavePlayer not found in scene!");
@@ -345,8 +349,8 @@ public class DialogueTrigger : MonoBehaviour
         else
         {
             // Fallback to default tag if GameManager is not available
-            tagToFind = "dialogue_start";
-            Debug.LogWarning("GameManager not found or dialogueStartTag not set. Using default tag: 'dialogue_start'");
+            tagToFind = DEFAULT_DIALOGUE_START_TAG;
+            Debug.LogWarning($"GameManager not found or dialogueStartTag not set. Using default tag: '{DEFAULT_DIALOGUE_START_TAG}'");
         }
         
         if (debugMode)

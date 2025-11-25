@@ -39,6 +39,8 @@ namespace Arcweave
         private float nextVariableUpdate = 0f;
         private bool isInitialized = false;
         private Element currentElement = null;
+        private Coroutine hideCoverCoroutine = null;
+        private Coroutine hideComponentCoverCoroutine = null;
 
         void Awake()
         {
@@ -331,7 +333,11 @@ namespace Arcweave
                         cover.canvasRenderer.SetAlpha(1);
                         cover.CrossFadeAlpha(0f, crossfadeTime, false);
                         // Hide after fade animation completes
-                        Invoke("HideCover", crossfadeTime);
+                        if (hideCoverCoroutine != null)
+                        {
+                            StopCoroutine(hideCoverCoroutine);
+                        }
+                        hideCoverCoroutine = StartCoroutine(HideCoverAfterDelay(crossfadeTime));
                     }
                     else
                     {
@@ -342,14 +348,18 @@ namespace Arcweave
         }
         
         /// <summary>
-        /// Helper method to hide cover after animation
+        /// Coroutine to hide cover after animation delay
         /// </summary>
-        private void HideCover()
+        private IEnumerator HideCoverAfterDelay(float delay)
         {
+            yield return new WaitForSeconds(delay);
+
             if (cover != null)
             {
                 cover.gameObject.SetActive(false);
             }
+
+            hideCoverCoroutine = null;
         }
 
         /// <summary>
@@ -385,7 +395,11 @@ namespace Arcweave
                         componentCover.canvasRenderer.SetAlpha(1);
                         componentCover.CrossFadeAlpha(0f, crossfadeTime, false);
                         // Hide after fade animation completes
-                        Invoke("HideComponentCover", crossfadeTime);
+                        if (hideComponentCoverCoroutine != null)
+                        {
+                            StopCoroutine(hideComponentCoverCoroutine);
+                        }
+                        hideComponentCoverCoroutine = StartCoroutine(HideComponentCoverAfterDelay(crossfadeTime));
                     }
                     else
                     {
@@ -396,14 +410,18 @@ namespace Arcweave
         }
         
         /// <summary>
-        /// Helper method to hide component cover after animation
+        /// Coroutine to hide component cover after animation delay
         /// </summary>
-        private void HideComponentCover()
+        private IEnumerator HideComponentCoverAfterDelay(float delay)
         {
+            yield return new WaitForSeconds(delay);
+
             if (componentCover != null)
             {
                 componentCover.gameObject.SetActive(false);
             }
+
+            hideComponentCoverCoroutine = null;
         }
 
         /// <summary>

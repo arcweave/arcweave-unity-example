@@ -8,6 +8,10 @@ using TMPro;
 /// </summary>
 public class ArcweaveVariableEvents : MonoBehaviour
 {
+    // Constants
+    private const string HEALTHY_ANIMATOR_PARAM = "Healthy";
+    private const float HEALTHY_THRESHOLD_PERCENTAGE = 0.4f;
+
     [Header("References")]
     public ArcweavePlayer arcweavePlayer;
     private Animator animator;
@@ -35,7 +39,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
         // Find references if not assigned
         if (arcweavePlayer == null)
         {
-            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
             if (arcweavePlayer == null)
             {
                 Debug.LogWarning("ArcweavePlayer not found in scene!");
@@ -50,7 +54,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
             arcweavePlayer.onProjectFinish += OnProjectFinish;
         }
 
-        var importer = FindObjectOfType<RuntimeArcweaveImporter>();
+        var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
         if (importer != null)
         {
             importer.onImportSuccess.AddListener(OnImportSuccess);
@@ -119,7 +123,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
         }
 
-        var importer = FindObjectOfType<RuntimeArcweaveImporter>();
+        var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
         if (importer != null)
         {
             importer.onImportSuccess.RemoveListener(OnImportSuccess);
@@ -224,7 +228,7 @@ public class ArcweaveVariableEvents : MonoBehaviour
         bool hasHealthyParameter = false;
         foreach (AnimatorControllerParameter param in animator.parameters)
         {
-            if (param.name == "Healthy" && param.type == AnimatorControllerParameterType.Bool)
+            if (param.name == HEALTHY_ANIMATOR_PARAM && param.type == AnimatorControllerParameterType.Bool)
             {
                 hasHealthyParameter = true;
                 break;
@@ -233,8 +237,8 @@ public class ArcweaveVariableEvents : MonoBehaviour
 
         if (hasHealthyParameter)
         {
-            // Set Healthy to true if health is above 40% of max
-            animator.SetBool("Healthy", currentHealth >= maxHealth * 0.4f);
+            // Set Healthy to true if health is above threshold percentage of max
+            animator.SetBool(HEALTHY_ANIMATOR_PARAM, currentHealth >= maxHealth * HEALTHY_THRESHOLD_PERCENTAGE);
         }
     }
 

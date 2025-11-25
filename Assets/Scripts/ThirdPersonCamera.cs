@@ -31,8 +31,8 @@ public class ThirdPersonCamera : MonoBehaviour
         
         // Initialize rotation Y based on initial rotation
         rotationY = transform.eulerAngles.y;
-        
-        // Opzionale: nascondi e blocca il cursore
+
+        // Optional: hide and lock the cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
