@@ -4,6 +4,7 @@ This project demonstrates Arcweave integration with Unity, allowing you to impor
 
 ![Arcweave Unity Example image](https://github.com/user-attachments/assets/f23a79a7-03c8-4d02-a899-bff6a2271c98)
 
+You can preview the example project directly in your browser https://arcweave.itch.io/arcweave-unity-example
 
 ## Features
 
