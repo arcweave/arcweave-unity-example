@@ -515,12 +515,24 @@ namespace Arcweave
         /// <summary>
         /// Handle waiting for input to proceed to next element
         /// </summary>
-        private void OnWaitInputNext(System.Action next) 
+        private void OnWaitInputNext(System.Action next)
         {
             if (next == null) return;
-            
+
             // Create a "Continue" button
-            var button = MakeButton("Continue", next);
+            Button button;
+            if (isDialogueEndElement)
+            {
+                // For dialogue_end elements, end dialogue before proceeding
+                button = MakeButton("Continue", () => {
+                    EndCurrentDialogue();
+                    next();
+                });
+            }
+            else
+            {
+                button = MakeButton("Continue", next);
+            }
             
             // Position the button
             if (button != null && buttonTemplate != null) 

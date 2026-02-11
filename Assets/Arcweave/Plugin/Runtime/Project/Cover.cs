@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.IO;
 
 namespace Arcweave.Project
 {
@@ -27,58 +26,13 @@ namespace Arcweave.Project
             this.filePath = filePath;
         }
 
-        ///<summary>Resolves the image from Resources or build folder.</summary>
+        ///<summary>Resolves the image from a 'Rersouces' folder.</summary>
         public Texture2D ResolveImage() {
-            // Check if filePath is null or empty
-            if (string.IsNullOrEmpty(filePath)) {
-                Debug.LogWarning("Cover image file path is null or empty");
-                return null;
-            }
-
             var imageName = System.IO.Path.GetFileNameWithoutExtension(filePath);
-            
-            // Return cached image if already loaded
-            if (_cachedImage != null && _cachedImage.name == imageName) {
-                return _cachedImage;
+            if ( _cachedImage == null || _cachedImage.name != imageName ) {
+                _cachedImage = Resources.Load<Texture2D>(imageName);
             }
-            
-            // Try to load from Resources first (original behavior)
-            _cachedImage = Resources.Load<Texture2D>(imageName);
-            if (_cachedImage != null) {
-                return _cachedImage;
-            }
-            
-            // Try to load from build folder
-            string buildFolderPath = Application.isEditor ? 
-                Application.dataPath.Replace("/Assets", "") : 
-                System.IO.Path.GetDirectoryName(Application.dataPath);
-            
-            string buildImagePath = System.IO.Path.Combine(buildFolderPath, "arcweave/images", System.IO.Path.GetFileName(filePath));
-            if (File.Exists(buildImagePath)) {
-                return LoadImageFromFile(buildImagePath, imageName);
-            }
-            
-            // If we get here, the image wasn't found
-            Debug.LogWarning($"Image not found: {imageName}. Tried Resources and build folder.");
-            return null;
-        }
-        
-        private Texture2D LoadImageFromFile(string fullPath, string imageName) {
-            try {
-                byte[] imageData = File.ReadAllBytes(fullPath);
-                Texture2D texture = new Texture2D(2, 2);
-                texture.name = imageName;
-                
-                if (texture.LoadImage(imageData)) {
-                    _cachedImage = texture;
-                    return _cachedImage;
-                }
-            }
-            catch (System.Exception e) {
-                Debug.LogError($"Error loading image from {fullPath}: {e.Message}");
-            }
-            
-            return null;
+            return _cachedImage;
         }
     }
 }
