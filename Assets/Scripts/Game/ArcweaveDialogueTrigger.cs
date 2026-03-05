@@ -146,7 +146,12 @@ public class DialogueTrigger : MonoBehaviour
             StartDialogue();
         }
     }
-    
+
+    public bool IsInDialogue()
+    {
+        return isInDialogue;
+    }
+
     /// <summary>
     /// Updates the interaction text visibility and rotation
     /// </summary>
