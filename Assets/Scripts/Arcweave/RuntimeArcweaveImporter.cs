@@ -1,9 +1,9 @@
-using UnityEngine;
-using UnityEngine.Events;
-using System.IO;
 using Arcweave;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// Imports Arcweave JSON projects at runtime
@@ -12,18 +12,18 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 {
     [Header("References")]
     public ArcweaveProjectAsset arcweaveAsset;
-    
+
     [Header("Web Import Settings")]
     public string apiKey = "";
     public string projectHash = "";
-    
+
     [Header("Local Import Settings")]
     public string localJsonFilePath = "arcweave/project.json";
-    
+
     [Header("Image Settings")]
     public bool useImageLoadingProxy = true;
     public bool preloadImages = true;
-    
+
     [Header("Events")]
     public UnityEvent onImportStarted;
     public UnityEvent onImportSuccess;
@@ -78,82 +78,83 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
         isImporting = true;
         onImportStarted?.Invoke();
-        
+
         // Clear existing image cache and create default folders
         if (imageLoader != null)
         {
             imageLoader.ClearCache();
         }
-        
+
         // Ensure default folders exist
         CreateDefaultImageFolders();
-        
+
         string fullPath = Path.Combine(
             Path.GetDirectoryName(Application.dataPath),
             localJsonFilePath
         );
-        
+
         if (!File.Exists(fullPath))
         {
             Debug.LogError($"Local JSON file not found at: {fullPath}");
             FinishImport(false);
             return;
         }
-        
+
         try
         {
             string jsonContent = File.ReadAllText(fullPath);
-            
+
             if (string.IsNullOrEmpty(jsonContent))
             {
                 Debug.LogError("JSON file is empty");
                 FinishImport(false);
                 return;
             }
-            
+
             // Create a temporary TextAsset with the JSON content
             TextAsset tempJsonAsset = new TextAsset(jsonContent);
-            
+
             // Store the original TextAsset and import source
             TextAsset originalJsonFile = arcweaveAsset.projectJsonFile;
             ArcweaveProjectAsset.ImportSource originalSource = arcweaveAsset.importSource;
-            
+
             // Set up for import
             arcweaveAsset.importSource = ArcweaveProjectAsset.ImportSource.FromJson;
             arcweaveAsset.projectJsonFile = tempJsonAsset;
-            
+
             Debug.Log("Starting import from local JSON file...");
-            
+
             // Import the project
-            arcweaveAsset.ImportProject(() => {
+            arcweaveAsset.ImportProject(() =>
+            {
                 // Restore original settings
                 arcweaveAsset.projectJsonFile = originalJsonFile;
                 arcweaveAsset.importSource = originalSource;
-                
+
                 if (arcweaveAsset.Project != null)
                 {
                     Debug.Log("Project imported successfully from local file");
-                    
+
                     // Ensure images are loaded from all possible locations
                     EnsureImagesAreLoaded();
-                    
+
                     // If using the image loading proxy, enable it
                     if (useImageLoadingProxy && imageLoader != null)
                     {
                         imageLoader.InstallImageLoadingHook();
                         Debug.Log("Image loading proxy installed");
                     }
-                    
+
                     // Preload all images if enabled
                     if (preloadImages && imageLoader != null)
                     {
                         imageLoader.PreloadProjectCovers(arcweaveAsset.Project);
                         Debug.Log("Project images preloaded");
                     }
-                    
+
                     // Process project images if they exist in the project
                     ProcessProjectImages(arcweaveAsset.Project);
-                    
+
                     // Disable debug logging after setup
                     if (imageLoader != null)
                     {
@@ -176,7 +177,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             FinishImport(false);
         }
     }
-    
+
     /// <summary>
     /// Ensures images are loaded from the appropriate paths
     /// </summary>
@@ -184,59 +185,60 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         if (imageLoader == null || arcweaveAsset == null || arcweaveAsset.Project == null)
             return;
-            
+
         Debug.Log("Setting up image loading paths...");
-        
+
         // Add all possible image locations systematically
-        
+
         // 1. Main project folder path for local images (most common location)
         string projectFolderPath = Path.Combine(
             Path.GetDirectoryName(Application.dataPath),
             "arcweave/images"
         );
         AddImageSearchPath(projectFolderPath);
-        
+
         // 2. Resources folder inside Assets (Unity's standard location)
         string resourcesPath = Path.Combine(Application.dataPath, "Resources");
         AddImageSearchPath(resourcesPath);
-        
+
         // 3. Arcweave folder inside Resources (common Arcweave setup)
         string arcweaveResourcesPath = Path.Combine(Application.dataPath, "Resources/Arcweave");
         AddImageSearchPath(arcweaveResourcesPath);
-        
+
         // 4. Alternative image folder commonly used
         string altImagePath = Path.Combine(
             Path.GetDirectoryName(Application.dataPath),
             "arcweave_images"
         );
         AddImageSearchPath(altImagePath);
-        
+
         // 5. Application's persistent data path for runtime-added images
         string persistentDataPath = Path.Combine(Application.persistentDataPath, "arcweave/images");
         AddImageSearchPath(persistentDataPath);
-        
+
         // Enable debug logging temporarily to track image loading
         if (imageLoader != null)
         {
             imageLoader.logDebugInfo = true;
         }
     }
-    
+
     /// <summary>
     /// Helper method to safely add an image search path
     /// </summary>
     private void AddImageSearchPath(string path)
     {
         if (imageLoader == null) return;
-        
+
         // Check if directory exists before adding
         if (Directory.Exists(path))
         {
             imageLoader.AddSearchPath(path);
             Debug.Log($"Added image search path: {path}");
-            
+
             // Log the files in this directory to help debug
-            try {
+            try
+            {
                 var files = Directory.GetFiles(path);
                 if (files.Length > 0)
                 {
@@ -260,7 +262,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             }
         }
     }
-    
+
     /// <summary>
     /// Creates default image folders if they don't exist
     /// </summary>
@@ -273,13 +275,13 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 Path.GetDirectoryName(Application.dataPath),
                 "arcweave/images"
             );
-            
+
             if (!Directory.Exists(projectFolderPath))
             {
                 Directory.CreateDirectory(projectFolderPath);
                 Debug.Log($"Created default image folder: {projectFolderPath}");
             }
-            
+
             // Create Resources folder for Arcweave if it doesn't exist
             string resourcesPath = Path.Combine(Application.dataPath, "Resources");
             if (!Directory.Exists(resourcesPath))
@@ -293,7 +295,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             Debug.LogError($"Error creating image folders: {e.Message}");
         }
     }
-    
+
     /// <summary>
     /// Process project images to ensure they're available
     /// </summary>
@@ -301,28 +303,28 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         if (project == null || imageLoader == null)
             return;
-            
+
         Debug.Log("Processing project images...");
-        
+
         int processedCount = 0;
         int missingCount = 0;
         List<string> missingImages = new List<string>();
-        
+
         // Process element images
-        if (project.boards != null)
+        if (project.Boards != null)
         {
-            foreach (var board in project.boards)
+            foreach (var board in project.Boards)
             {
                 if (board != null && board.Nodes != null)
                 {
                     foreach (var node in board.Nodes)
                     {
-                        if (node is Arcweave.Project.Element element && element.cover != null && 
+                        if (node is Arcweave.Project.Element element && element.cover != null &&
                             !string.IsNullOrEmpty(element.cover.filePath))
                         {
                             string imageName = Path.GetFileName(element.cover.filePath);
                             Debug.Log($"Processing image: {imageName} for element {element.Title}");
-                            
+
                             var image = imageLoader.GetCoverImage(element.cover);
                             if (image != null)
                             {
@@ -340,7 +342,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 }
             }
         }
-        
+
         // Check if we found all images
         if (missingCount > 0)
         {
@@ -349,16 +351,16 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             {
                 Debug.LogWarning($"  - Missing image: {missingImage}");
             }
-            
+
             // Suggest folder locations
             Debug.Log("Images should be placed in one of these locations:");
             Debug.Log($"1. {Path.Combine(Path.GetDirectoryName(Application.dataPath), "arcweave/images")}");
             Debug.Log($"2. {Path.Combine(Application.dataPath, "Resources")}");
         }
-        
+
         Debug.Log($"Processed {processedCount} project images. Missing: {missingCount}");
     }
-    
+
     /// <summary>
     /// Imports a project from the Arcweave web API using apiKey and projectHash
     /// </summary>
@@ -379,23 +381,24 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
         isImporting = true;
         onImportStarted?.Invoke();
-        
+
         if (imageLoader != null)
         {
             imageLoader.ClearCache();
         }
-        
+
         try
         {
             // Set import source to Web
             arcweaveAsset.importSource = ArcweaveProjectAsset.ImportSource.FromWeb;
             arcweaveAsset.userAPIKey = apiKey;
             arcweaveAsset.projectHash = projectHash;
-            
+
             Debug.Log($"Starting web import with API Key: {apiKey.Substring(0, 3)}... and Project Hash: {projectHash}");
-            
+
             // Import from web using the correct method
-            arcweaveAsset.ImportProject(() => {
+            arcweaveAsset.ImportProject(() =>
+            {
                 if (arcweaveAsset.Project != null)
                 {
                     Debug.Log("Project imported successfully from web");
@@ -422,13 +425,13 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     private void FinishImport(bool success)
     {
         isImporting = false;
-        
+
         if (success)
             onImportSuccess?.Invoke();
         else
             onImportFailed?.Invoke();
     }
-
+        
     /// <summary>
     /// Updates the game state based on the new project
     /// </summary>
@@ -441,7 +444,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             player.ResetVariables();
             player.aw = arcweaveAsset;
         }
-        
+
         // Update variable-based visuals
         foreach (var healthUI in FindObjectsByType<ArcweaveHealthUI>(FindObjectsSortMode.None))
         {
@@ -453,40 +456,40 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             objectActivation.ResetObjectActivation();
             objectActivation.UpdateObjectActivation();
         }
-        
+
         // Note: We don't call ResumeGame here anymore
         // Let the ArcweaveImporterUI handle closing the panel and resuming the game
         // This prevents conflicts between different components trying to control the game state
     }
-    
+
     /// <summary>
     /// Sets the API key for web imports
     /// </summary>
     public void SetApiKey(string key)
     {
         apiKey = key;
-        
+
         // Update the asset property as well
         if (arcweaveAsset != null)
         {
             arcweaveAsset.userAPIKey = key;
         }
     }
-    
+
     /// <summary>
     /// Sets the project hash for web imports
     /// </summary>
     public void SetProjectHash(string hash)
     {
         projectHash = hash;
-        
+
         // Update the asset property as well
         if (arcweaveAsset != null)
         {
             arcweaveAsset.projectHash = hash;
         }
     }
-    
+
     /// <summary>
     /// Sets the local JSON file path
     /// </summary>
@@ -494,7 +497,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         localJsonFilePath = path;
     }
-    
+
     /// <summary>
     /// Returns a user-friendly path for placing the JSON file
     /// </summary>
@@ -503,4 +506,4 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         string basePath = Path.GetDirectoryName(Application.dataPath);
         return Path.Combine(basePath, localJsonFilePath);
     }
-} 
+}
