@@ -44,12 +44,17 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
     private void Start()
     {
+#if !UNITY_EDITOR
         Debug.Log("RuntimeArcweaveImporter starting... Loading project from local path.");
-        
+
         // Load directly from local JSON file
         StartCoroutine(LoadLocalProjectWithDelay());
+#else
+        Debug.Log("RuntimeArcweaveImporter: skipping local JSON load in Editor.");
+#endif
     }
     
+#if !UNITY_EDITOR
     /// <summary>
     /// Loads the local project with a small delay to ensure everything is initialized
     /// </summary>
@@ -57,11 +62,12 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         // Wait a moment to allow other components to initialize
         yield return new WaitForSeconds(0.5f);
-        
+
         // Try to load the local JSON file
         ImportFromLocalFile();
     }
-    
+#endif
+
     /// <summary>
     /// Imports a project from a local file
     /// </summary>

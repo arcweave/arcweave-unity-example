@@ -425,43 +425,39 @@ No manual usage is required - it runs automatically after you build your game.
 
 ### PlayerController
 
-**Purpose**: Controls the player character's movement and interactions within the game world.
+**Purpose**: Controls the player character's movement within the game world.
 
 **Key Features**:
 
-- Handles basic character movement (walk, run, jump)
-- Integrates with the dialogue system to enable/disable controls during conversations
-- Manages player animations and state transitions
-- Provides smooth movement with configurable speed settings
+- Camera-relative movement (WASD / left stick)
+- Smooth rotation towards movement direction
+- Drives the character Animator via a `Speed` float parameter
 
 **Design Approach**:
-PlayerController works seamlessly with the Arcweave dialogue system. When dialogues begin, the controller automatically disables player input, and when dialogues end, it restores control. This creates a smooth transition between gameplay and narrative sequences.
+PlayerController is intentionally minimal — it handles movement only. Disabling the controller during dialogues is the responsibility of `GameManager`, which calls `playerController.enabled = false/true` on state transitions. This keeps each component focused on a single concern.
 
 **Usage Example**:
 
 1. Attach to your player character
-2. Configure movement speeds and input settings
-3. Link with GameManager to handle game state changes
-4. The controller will automatically handle input enabling/disabling during dialogues
+2. Configure `moveSpeed` and `rotationSpeed` in the Inspector
+3. Ensure the character has an `Animator` with a `Speed` float parameter
 
 ### ThirdPersonCamera
 
-Provides a third-person camera that follows the player with smooth movement.
+Provides a third-person camera that follows the player with mouse-driven rotation.
 
 **Key Features**:
 
-- Follows the player with adjustable distance and height
-- Smooth rotation and position interpolation
-- Collision detection to prevent camera clipping through walls
-- Support for dialogue camera positions during conversations
+- Follows a target Transform at configurable distance and height
+- Mouse X/Y input drives horizontal and vertical rotation (clamped)
+- Smooth position and rotation interpolation via `Lerp` in `LateUpdate`
 
 **Design Approach**:
-This camera system is designed to provide an immersive view during gameplay while also supporting dialogue scenarios. The camera can smoothly transition to different positions when dialogues begin, focusing on the conversation. The integration with the GameManager ensures the camera behaves appropriately in different game states.
+Like `PlayerController`, this script is disabled by `GameManager` when the game enters Dialogue or Paused states, which naturally freezes camera movement without any additional logic in the camera itself.
 
 **Usage Example**:
 
 1. Attach to a camera GameObject in your scene
-2. Assign your player character as the target
-3. Configure distance, height, and smoothing parameters
-4. The camera will automatically adjust based on gameplay or dialogue contexts
+2. Assign your player character as `target`
+3. Configure `distance`, `height`, `smoothSpeed`, and `mouseSensitivity` in the Inspector
 

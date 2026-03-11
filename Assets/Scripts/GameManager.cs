@@ -255,7 +255,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for gameplay
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("isInDialogue", false);
+            characterAnimator.SetBool("IsInDialogue", false);
         }
         
         // Lock cursor for gameplay
@@ -278,7 +278,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for dialogue
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("isInDialogue", true);
+            characterAnimator.SetBool("IsInDialogue", true);
         }
         
         // Unlock cursor for UI interaction
@@ -300,7 +300,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for dialogue
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("isInDialogue", true);
+            characterAnimator.SetBool("IsInDialogue", true);
         }
     }
     

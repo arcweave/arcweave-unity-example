@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Night.unity
     guid: 78c0c50ac4ae2d64aaa5c769a19d7b04
   - enabled: 1
-    path: Assets/Scenes/Day.unity
+    path: Assets/Scenes/Demo Scene.unity
     guid: d79c5fc47a16f5d458f47678e563c43f
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
