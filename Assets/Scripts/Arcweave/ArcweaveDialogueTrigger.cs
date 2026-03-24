@@ -357,18 +357,33 @@ public class DialogueTrigger : MonoBehaviour
         {
             Debug.Log($"Searching for elements with tag: {tagToFind}");
         }
-        
-        // First pass: look for exact tag match
+
+        // First pass: look for a component whose name matches — uses dialogueStartComponentName if set
+        string componentNameToFind = (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.dialogueStartComponentName))
+            ? GameManager.Instance.dialogueStartComponentName
+            : tagToFind;
+
+        foreach (var node in targetBoard.Nodes)
+        {
+            if (node is Element element && element.HasComponent(componentNameToFind))
+            {
+                if (debugMode)
+                    Debug.Log($"Found element with component '{componentNameToFind}': {element.Title}");
+                return element;
+            }
+        }
+
+        // Second pass: look for exact attribute data match (legacy pattern)
         foreach (var node in targetBoard.Nodes)
         {
             if (node is Element element)
             {
                 if (element.Attributes == null) continue;
-                
+
                 foreach (var attribute in element.Attributes)
                 {
                     if (attribute == null || attribute.data == null) continue;
-                    
+
                     string data = attribute.data.ToString();
                     if (data == tagToFind)
                     {
@@ -382,17 +397,17 @@ public class DialogueTrigger : MonoBehaviour
             }
         }
         
-        // Second pass: look for partial tag match
+        // Third pass: look for partial attribute data match (legacy pattern)
         foreach (var node in targetBoard.Nodes)
         {
             if (node is Element element)
             {
                 if (element.Attributes == null) continue;
-                
+
                 foreach (var attribute in element.Attributes)
                 {
                     if (attribute == null || attribute.data == null) continue;
-                    
+
                     string data = attribute.data.ToString();
                     if (data.Contains(tagToFind))
                     {

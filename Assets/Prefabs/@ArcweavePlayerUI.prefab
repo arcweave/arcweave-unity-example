@@ -676,6 +676,9 @@ MonoBehaviour:
   variablesText: {fileID: 0}
   showVariables: 1
   variableUpdateInterval: 0.5
+  crossfadeTime: 0.3
+  animateTextEntries: 1
+  debugMode: 0
 --- !u!1 &1403719407132734687
 GameObject:
   m_ObjectHideFlags: 0

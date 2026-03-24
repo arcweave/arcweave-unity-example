@@ -2,6 +2,7 @@ using UnityEngine;
 using Arcweave;
 using Arcweave.Project;
 
+[AddComponentMenu("")]
 public abstract class ArcweaveAttributeHandler : MonoBehaviour
 {
     [Header("Arcweave Settings")]

@@ -40,6 +40,10 @@ public class GameManager : MonoBehaviour
     [Header("Dialogue Tags")]
     public string dialogueEndTag = "dialogue_end";
     public string dialogueStartTag = "dialogue_start";
+    [Tooltip("Name of the Arcweave component that marks the starting element. If blank, uses dialogueStartTag.")]
+    public string dialogueStartComponentName = "";
+    [Tooltip("Name of the Arcweave component that marks the ending element. If blank, uses dialogueEndTag.")]
+    public string dialogueEndComponentName = "";
     
     [Header("Debug Settings")]
     public bool debugMode = false;
@@ -349,24 +353,34 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks if an Arcweave element has the dialogue end tag
+    /// Checks if an Arcweave element has the dialogue end tag.
+    /// Supports both component-based (new) and attribute-based (legacy) patterns.
     /// </summary>
     public bool HasDialogueEndTag(Element element)
     {
-        if (element == null || element.Attributes == null) return false;
+        if (element == null) return false;
         if (string.IsNullOrEmpty(dialogueEndTag)) return false;
-        
+
+        // Component check — uses dialogueEndComponentName if set, otherwise dialogueEndTag
+        string endComponentName = string.IsNullOrEmpty(dialogueEndComponentName) ? dialogueEndTag : dialogueEndComponentName;
+        if (element.HasComponent(endComponentName))
+        {
+            if (debugMode)
+                Debug.Log($"Element '{element.Title}' has dialogue_end component '{endComponentName}'");
+            return true;
+        }
+
+        // Attribute check (legacy)
+        if (element.Attributes == null) return false;
         foreach (var attribute in element.Attributes)
         {
             if (attribute == null || attribute.data == null) continue;
-            
+
             string data = attribute.data.ToString();
             if (data.Contains(dialogueEndTag))
             {
                 if (debugMode)
-                {
                     Debug.Log($"Element '{element.Title}' has dialogue end tag: {data}");
-                }
                 return true;
             }
         }
@@ -378,20 +392,29 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool HasDialogueStartTag(Element element)
     {
-        if (element == null || element.Attributes == null) return false;
+        if (element == null) return false;
         if (string.IsNullOrEmpty(dialogueStartTag)) return false;
-        
+
+        // Component check — uses dialogueStartComponentName if set, otherwise dialogueStartTag
+        string startComponentName = string.IsNullOrEmpty(dialogueStartComponentName) ? dialogueStartTag : dialogueStartComponentName;
+        if (element.HasComponent(startComponentName))
+        {
+            if (debugMode)
+                Debug.Log($"Element '{element.Title}' has dialogue_start component '{startComponentName}'");
+            return true;
+        }
+
+        // Attribute check (legacy)
+        if (element.Attributes == null) return false;
         foreach (var attribute in element.Attributes)
         {
             if (attribute == null || attribute.data == null) continue;
-            
+
             string data = attribute.data.ToString();
             if (data.Contains(dialogueStartTag))
             {
                 if (debugMode)
-                {
                     Debug.Log($"Element '{element.Title}' has dialogue start tag: {data}");
-                }
                 return true;
             }
         }

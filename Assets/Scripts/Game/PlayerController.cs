@@ -9,6 +9,10 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
 
+    [Header("Combat")]
+    [Tooltip("Set to true by SwordSwingHandler when the player unlocks the attack ability")]
+    public bool canSwing = false;
+
     // References
     private Animator animator;
     private Transform cameraTransform;
@@ -25,6 +29,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         HandleMovement();
+        if (canSwing) HandleAttack();
     }
 
     /// <summary>
@@ -83,5 +88,28 @@ public class PlayerController : MonoBehaviour
     {
         if (animator != null)
             animator.SetFloat("Speed", speed);
+    }
+
+    /// <summary>
+    /// Fires the Attack trigger on left mouse click.
+    /// Only called when canSwing is true.
+    /// </summary>
+    private void HandleAttack()
+    {
+        if (Input.GetMouseButtonDown(0) && animator != null
+            && !animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"))
+            animator.SetTrigger("Attack");
+    }
+
+    /// <summary>
+    /// Called by SwordSwingHandler when the player reaches a dialogue element
+    /// with the Attack component. Permanently enables sword swing.
+    /// The speed parameter sets the Animator speed for the attack animation.
+    /// </summary>
+    public void EnableSwordSwing(float speed = 1f)
+    {
+        canSwing = true;
+        if (animator != null)
+            animator.speed = speed;
     }
 }

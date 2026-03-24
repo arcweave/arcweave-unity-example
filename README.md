@@ -129,7 +129,75 @@ If you encounter issues during import:
 
 ## For Developers
 
+### Scripts Structure
+
+```
+Assets/Scripts/
+├── Arcweave/       — core integration: ArcweavePlayer, ArcweavePlayerUI, ArcweaveDialogueTrigger,
+│                     ArcweaveVariableEvents, ArcweaveSceneController, ArcweaveImageLoader,
+│                     RuntimeArcweaveImporter, ArcweaveImporterUI
+├── Extensions/     — extension pattern: ArcweaveAttributeHandler, ArcweaveSliderColorHandler,
+│                     ArcweaveElementComponentHandler, SwordSwingHandler
+├── Game/           — gameplay: GameManager, PlayerController, ThirdPersonCamera, ParticleSystemController
+└── Editor/         — build tooling: ArcweaveBuildProcessor
+```
+
+---
+
 ## Core Scripts Overview
+
+### ArcweaveElementComponentHandler
+
+Abstract base class for reacting to Arcweave components attached to specific dialogue elements during a conversation.
+
+**Key Features**:
+
+- Subscribes to `ArcweavePlayer.onElementEnter` — fires every time the dialogue advances to a new element
+- Checks whether the current element has a component whose name matches `componentName`
+- If yes: calls `OnComponentDetected(element, component)` — implement your gameplay behavior here
+- If no: calls `OnComponentAbsent(element)` — optionally override to undo effects when leaving those elements
+- `GetAttributeValue(component, attributeName)` helper reads any attribute from the component as a string
+
+**Design Approach**:
+Hidden from Unity's Add Component menu (`[AddComponentMenu("")]`) — you always work with a concrete subclass. The pattern separates narrative data (the component and its attributes, configured in Arcweave) from Unity behavior (implemented in the subclass). Narrative designers attach components to elements; developers write the handler once.
+
+**Usage Example**:
+
+1. Create a class that inherits `ArcweaveElementComponentHandler`
+2. Set `componentName` in the Inspector to match the Arcweave component name exactly
+3. Override `OnComponentDetected()` to implement your behavior
+4. Optionally override `OnComponentAbsent()` to reset when moving away
+
+---
+
+### SwordSwingHandler
+
+Concrete subclass of `ArcweaveElementComponentHandler`. Permanently enables the player's sword swing when the dialogue enters an element with the `Attack` component attached.
+
+**Key Features**:
+
+- Reads optional `SwingSpeed` attribute from the `Attack` component (default `1.0`)
+- Calls `PlayerController.EnableSwordSwing(speed)` — sets `canSwing = true` and adjusts Animator speed
+- `OnComponentAbsent` is intentionally NOT overridden: once unlocked, the ability stays active for the session
+
+**Inspector Fields**:
+
+| Field | Description |
+|-------|-------------|
+| `Component Name` | `Attack` — must match the Arcweave component name exactly |
+| `Player Controller` | The player's `PlayerController` component |
+| `Swing Speed Attribute` | Name of the optional speed attribute (default: `SwingSpeed`) |
+
+**Arcweave Setup**:
+- Create a component named `Attack` in your Arcweave project
+- Optionally add a `SwingSpeed` attribute (e.g. `1.5` for 50% faster animation)
+- Attach the component to the dialogue element where the player unlocks the ability
+
+**Unity Prerequisites**:
+- Player's Animator Controller must have an `Attack` Trigger parameter
+- Animator should have a transition from the idle/walk state to an attack animation using this Trigger
+
+---
 
 ### ArcweaveAttributeHandler
 
@@ -298,7 +366,7 @@ Links Arcweave variables to Unity events. Allows gameplay elements to react to c
 **Key Features**:
 
 - Updates health bars from Arcweave variables
-- Controls GameObject activation based on variables
+- Controls GameObject activation based on variables (**inverted logic**: variable `true` → object inactive; variable `false` → object activates)
 - Updates animator parameters from health values
 - Changes UI colors from Arcweave attributes
 
@@ -319,7 +387,7 @@ Manages overall game state (Gameplay, Dialogue, Paused) and transitions between 
 
 - Manages game states (Gameplay, Dialogue, Paused)
 - Controls UI visibility and cursor state
-- Handles dialogue start/end detection
+- Handles dialogue start/end detection via attribute tags (`dialogueStartTag`, `dialogueEndTag`) or optionally by component name (`dialogueStartComponentName`, `dialogueEndComponentName`)
 - Shows temporary messages to the player
 
 **Design Approach**:
@@ -425,22 +493,24 @@ No manual usage is required - it runs automatically after you build your game.
 
 ### PlayerController
 
-**Purpose**: Controls the player character's movement within the game world.
+**Purpose**: Controls the player character's movement and combat input within the game world.
 
 **Key Features**:
 
 - Camera-relative movement (WASD / left stick)
 - Smooth rotation towards movement direction
 - Drives the character Animator via a `Speed` float parameter
+- **Sword swing**: left mouse button fires the `Attack` Animator Trigger when `canSwing` is `true`
+- `EnableSwordSwing(float speed)` — called by `SwordSwingHandler` to permanently unlock the attack ability and set animation speed
 
 **Design Approach**:
-PlayerController is intentionally minimal — it handles movement only. Disabling the controller during dialogues is the responsibility of `GameManager`, which calls `playerController.enabled = false/true` on state transitions. This keeps each component focused on a single concern.
+PlayerController is intentionally minimal — it handles movement only, plus combat input gating. Disabling the controller during dialogues is the responsibility of `GameManager`. `canSwing` defaults to `false` and is only set to `true` by `SwordSwingHandler` when the dialogue reaches an element with the `Attack` component.
 
 **Usage Example**:
 
 1. Attach to your player character
 2. Configure `moveSpeed` and `rotationSpeed` in the Inspector
-3. Ensure the character has an `Animator` with a `Speed` float parameter
+3. Ensure the character has an `Animator` with a `Speed` float parameter and an `Attack` Trigger parameter
 
 ### ThirdPersonCamera
 
