@@ -29,9 +29,6 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     public UnityEvent onImportSuccess;
     public UnityEvent onImportFailed;
 
-    [Header("Effects")]
-    public ParticleSystemController particleSystemController;
-
     // State tracking
     private bool isImporting = false;
     private bool hasLoadedPrepackagedJson = false;
@@ -163,7 +160,6 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                         imageLoader.logDebugInfo = false;
                     }
                     
-                    UpdateParticleSystem();
                     UpdateGameState();
                     FinishImport(true);
                 }
@@ -403,7 +399,6 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 if (arcweaveAsset.Project != null)
                 {
                     Debug.Log("Project imported successfully from web");
-                    UpdateParticleSystem();
                     UpdateGameState();
                     FinishImport(true);
                 }
@@ -435,17 +430,6 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates particle system effects based on the new project
-    /// </summary>
-    private void UpdateParticleSystem()
-    {
-        if (particleSystemController != null)
-        {
-            particleSystemController.UpdateParticleSystem();
-        }
-    }
-    
-    /// <summary>
     /// Updates the game state based on the new project
     /// </summary>
     private void UpdateGameState()
@@ -459,13 +443,15 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         }
         
         // Update variable-based visuals
-        var variableEvents = FindAnyObjectByType<ArcweaveVariableEvents>();
-        if (variableEvents != null)
+        foreach (var healthUI in FindObjectsByType<ArcweaveHealthUI>(FindObjectsSortMode.None))
         {
-            variableEvents.ResetObjectActivation();
-            variableEvents.UpdateSliderColor();
-            variableEvents.UpdateHealthFromVariable();
-            variableEvents.UpdateObjectActivation();
+            healthUI.UpdateSliderColor();
+            healthUI.UpdateHealthFromVariable();
+        }
+        foreach (var objectActivation in FindObjectsByType<ArcweaveObjectActivation>(FindObjectsSortMode.None))
+        {
+            objectActivation.ResetObjectActivation();
+            objectActivation.UpdateObjectActivation();
         }
         
         // Note: We don't call ResumeGame here anymore

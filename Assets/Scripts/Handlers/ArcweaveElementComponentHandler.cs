@@ -20,7 +20,7 @@ public abstract class ArcweaveElementComponentHandler : MonoBehaviour
     protected virtual void Start()
     {
         if (arcweavePlayer == null)
-            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
 
         if (arcweavePlayer != null)
             arcweavePlayer.onElementEnter += HandleElementEnter;

@@ -45,6 +45,10 @@ public class GameManager : MonoBehaviour
     [Tooltip("Name of the Arcweave component that marks the ending element. If blank, uses dialogueEndTag.")]
     public string dialogueEndComponentName = "";
     
+    [Header("Animation")]
+    [Tooltip("Animator bool parameter for dialogue state")]
+    public string dialogueAnimatorParam = "IsInDialogue";
+
     [Header("Debug Settings")]
     public bool debugMode = false;
     
@@ -259,7 +263,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for gameplay
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("IsInDialogue", false);
+            characterAnimator.SetBool(dialogueAnimatorParam, false);
         }
         
         // Lock cursor for gameplay
@@ -282,7 +286,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for dialogue
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("IsInDialogue", true);
+            characterAnimator.SetBool(dialogueAnimatorParam, true);
         }
         
         // Unlock cursor for UI interaction
@@ -304,7 +308,7 @@ public class GameManager : MonoBehaviour
         // Set animator state for dialogue
         if (characterAnimator != null)
         {
-            characterAnimator.SetBool("IsInDialogue", true);
+            characterAnimator.SetBool(dialogueAnimatorParam, true);
         }
     }
     

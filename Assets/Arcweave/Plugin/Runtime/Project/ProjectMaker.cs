@@ -136,10 +136,11 @@ namespace Arcweave.Project
                 }
 
                 var components = new List<Component>();
-                var componentids = GetProp(jelements, id, "components");
-                foreach ( var componentid in componentids.AsList ) {
-                    var component = TryMakeComponent(componentid.AsString);
-                    if ( component != null ) components.Add(component); //null = has children
+                if ( HasProperty(jelements, id, "components", out var componentids) ) {
+                    foreach ( var componentid in componentids.AsList ) {
+                        var component = TryMakeComponent(componentid.AsString);
+                        if ( component != null ) components.Add(component); //null = has children
+                    }
                 }
 
                 var attributes = new List<Attribute>();

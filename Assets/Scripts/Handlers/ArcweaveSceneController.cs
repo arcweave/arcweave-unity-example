@@ -21,6 +21,14 @@ public class ArcweaveSceneController : MonoBehaviour
     [Tooltip("The name of the attribute for particle system state")]
     public string particleAttribute = "ParticleState";
     
+    [Header("Time Values")]
+    [Tooltip("Attribute value for day time")]
+    public string dayValue = "Day";
+    [Tooltip("Attribute value for night time")]
+    public string nightValue = "Night";
+    [Tooltip("Camera background color for night")]
+    public Color nightColor = Color.black;
+
     [Header("Visual Effects")]
     public Camera sceneCamera;
     public ParticleSystem[] particleSystems;
@@ -32,7 +40,7 @@ public class ArcweaveSceneController : MonoBehaviour
         // Initialize references if needed
         if (arcweavePlayer == null)
         {
-            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
             if (arcweavePlayer == null)
             {
                 Debug.LogWarning("ArcweavePlayer not found!");
@@ -154,22 +162,20 @@ public class ArcweaveSceneController : MonoBehaviour
         }
         
         // Set background based on time value
-        switch (timeValue.ToLower())
+        if (string.Equals(timeValue, dayValue, System.StringComparison.OrdinalIgnoreCase))
         {
-            case "day":
-                sceneCamera.clearFlags = CameraClearFlags.Skybox;
-                Debug.Log("Setting background to Skybox (Day)");
-                break;
-                
-            case "night":
-                sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-                sceneCamera.backgroundColor = Color.black;
-                Debug.Log("Setting background to Solid Color Black (Night)");
-                break;
-                
-            default:
-                Debug.LogWarning($"Unknown time value: {timeValue}");
-                break;
+            sceneCamera.clearFlags = CameraClearFlags.Skybox;
+            Debug.Log($"Setting background to Skybox ({dayValue})");
+        }
+        else if (string.Equals(timeValue, nightValue, System.StringComparison.OrdinalIgnoreCase))
+        {
+            sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+            sceneCamera.backgroundColor = nightColor;
+            Debug.Log($"Setting background to Solid Color ({nightValue})");
+        }
+        else
+        {
+            Debug.LogWarning($"Unknown time value: {timeValue}");
         }
     }
     

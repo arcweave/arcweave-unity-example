@@ -608,15 +608,16 @@ namespace Arcweave
         private IEnumerator FadeInButton(CanvasGroup canvasGroup)
         {
             float elapsedTime = 0f;
-            
+
             while (elapsedTime < crossfadeTime)
             {
+                if (canvasGroup == null) yield break;
                 canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsedTime / crossfadeTime);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
-            
-            canvasGroup.alpha = 1f;
+
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
         }
 
         /// <summary>

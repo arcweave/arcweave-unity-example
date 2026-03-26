@@ -9,6 +9,14 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
 
+    [Header("Animation Parameters")]
+    [Tooltip("Animator float parameter for movement speed")]
+    public string speedAnimatorParam = "Speed";
+    [Tooltip("Animator trigger parameter for attack")]
+    public string attackAnimatorParam = "Attack";
+    [Tooltip("Animator state name for attack (used to prevent re-triggering)")]
+    public string attackStateName = "Attack";
+
     [Header("Combat")]
     [Tooltip("Set to true by SwordSwingHandler when the player unlocks the attack ability")]
     public bool canSwing = false;
@@ -87,7 +95,7 @@ public class PlayerController : MonoBehaviour
     private void UpdateAnimationState(float speed)
     {
         if (animator != null)
-            animator.SetFloat("Speed", speed);
+            animator.SetFloat(speedAnimatorParam, speed);
     }
 
     /// <summary>
@@ -97,8 +105,8 @@ public class PlayerController : MonoBehaviour
     private void HandleAttack()
     {
         if (Input.GetMouseButtonDown(0) && animator != null
-            && !animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"))
-            animator.SetTrigger("Attack");
+            && !animator.GetCurrentAnimatorStateInfo(0).IsName(attackStateName))
+            animator.SetTrigger(attackAnimatorParam);
     }
 
     /// <summary>

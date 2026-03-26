@@ -1,6 +1,5 @@
 using UnityEngine;
 using Arcweave.Project;
-using System.Linq;
 
 namespace Arcweave
 {
@@ -111,45 +110,14 @@ namespace Arcweave
         }
 
         /// <summary>
-        /// Find a suitable starting element for the project
+        /// Find a suitable starting element for the project.
+        /// Returns the starting element configured in the Arcweave project.
+        /// Note: in the 3D demo, autoStart should be false — DialogueTrigger
+        /// drives dialogue per-NPC via EnsureInitialized() + Next(element) directly.
         /// </summary>
-        private Element FindStartingElement() 
+        private Element FindStartingElement()
         {
-            if (aw == null || aw.Project == null || aw.Project.boards == null)
-            {
-                Debug.LogError("Cannot find starting element - project not properly initialized");
-                return null;
-            }
-            
-            // Search in all boards
-            foreach (var board in aw.Project.boards) 
-            {
-                if (board == null || board.Nodes == null) continue;
-                
-                // Search for elements in the board
-                foreach (var node in board.Nodes.OfType<Element>()) 
-                {
-                    if (node == null) continue;
-                    
-                    // Check if element has a "character" component
-                    if (node.TryGetComponent("character", out var characterComponent)) 
-                    {
-                        // Check for starting_dialogue_elements attribute
-                        var hasStartingDialogueAttribute = node.Attributes != null && node.Attributes.Any(attr => 
-                            attr != null && attr.Name == "starting_dialogue_elements" && 
-                            attr.data != null && (bool)attr.data == true
-                        );
-                        
-                        if (hasStartingDialogueAttribute) 
-                        {
-                            return node;
-                        }
-                    }
-                }
-            }
-            
-            // Fallback to the original starting element
-            return aw.Project.StartingElement;
+            return aw?.Project?.StartingElement;
         }
 
         /// <summary>

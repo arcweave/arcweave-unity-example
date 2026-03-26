@@ -34,7 +34,7 @@ public abstract class ArcweaveAttributeHandler : MonoBehaviour
     {
         if (arcweavePlayer == null)
         {
-            arcweavePlayer = FindObjectOfType<ArcweavePlayer>();
+            arcweavePlayer = FindAnyObjectByType<ArcweavePlayer>();
             if (arcweavePlayer == null)
             {
                 Debug.LogError("ArcweavePlayer not found!");
