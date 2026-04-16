@@ -983,6 +983,7 @@ MonoBehaviour:
   speedAnimatorParam: Speed
   attackAnimatorParam: Attack
   attackStateName: Attack
+  attackSpeedParam: AttackSpeed
   canSwing: 0
 --- !u!136 &289867029
 CapsuleCollider:
@@ -9868,10 +9869,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5786447561841143916, guid: add30ec50e0d6d94582dfe1e2b8e914c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: add30ec50e0d6d94582dfe1e2b8e914c, type: 3}
 --- !u!1001 &835354901
 PrefabInstance:

@@ -112,12 +112,9 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Called by SwordSwingHandler when the player reaches a dialogue element
     /// with the Attack component. Permanently enables sword swing.
-    /// The speed parameter sets the Animator speed for the attack animation.
     /// </summary>
-    public void EnableSwordSwing(float speed = 1f)
+    public void EnableSwordSwing()
     {
         canSwing = true;
-        if (animator != null)
-            animator.speed = speed;
     }
 }
