@@ -446,7 +446,7 @@ public class GameManager : MonoBehaviour
         player.EnsureInitialized();
         
         // Find an element with the specified tag
-        foreach (var board in player.aw.Project.boards)
+        foreach (var board in player.aw.Project.Boards)
         {
             if (board == null || board.Nodes == null) continue;
             

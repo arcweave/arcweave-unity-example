@@ -146,7 +146,12 @@ public class DialogueTrigger : MonoBehaviour
             StartDialogue();
         }
     }
-    
+
+    public bool IsInDialogue()
+    {
+        return isInDialogue;
+    }
+
     /// <summary>
     /// Updates the interaction text visibility and rotation
     /// </summary>
@@ -278,13 +283,13 @@ public class DialogueTrigger : MonoBehaviour
         }
 
         // Search for the specified board
-        var targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board != null && board.Name == specificBoardName);
+        var targetBoard = arcweavePlayer.aw.Project.Boards.Find(board => board != null && board.Name == specificBoardName);
         
         // Try fallback board if specified and primary board not found
         if (targetBoard == null && !string.IsNullOrEmpty(fallbackBoardName))
         {
             Debug.LogWarning($"Board '{specificBoardName}' not found, trying fallback board '{fallbackBoardName}'");
-            targetBoard = arcweavePlayer.aw.Project.boards.Find(board => board != null && board.Name == fallbackBoardName);
+            targetBoard = arcweavePlayer.aw.Project.Boards.Find(board => board != null && board.Name == fallbackBoardName);
         }
         
         if (targetBoard == null)
@@ -486,9 +491,9 @@ public class DialogueTrigger : MonoBehaviour
         }
         
         // If no specific or fallback board, try to use the first board in the project
-        if (targetBoard == null && arcweavePlayer.aw.Project.boards != null && arcweavePlayer.aw.Project.boards.Count > 0)
+        if (targetBoard == null && arcweavePlayer.aw.Project.Boards != null && arcweavePlayer.aw.Project.Boards.Count > 0)
         {
-            targetBoard = arcweavePlayer.aw.Project.boards.First();
+            targetBoard = arcweavePlayer.aw.Project.Boards.First();
             Debug.LogWarning($"Using first available board for dialogue trigger {gameObject.name}");
         }
         
@@ -513,12 +518,12 @@ public class DialogueTrigger : MonoBehaviour
             return null;
         }
         
-        if (arcweavePlayer.aw.Project.boards == null)
+        if (arcweavePlayer.aw.Project.Boards == null)
         {
             return null;
         }
         
-        foreach (var board in arcweavePlayer.aw.Project.boards)
+        foreach (var board in arcweavePlayer.aw.Project.Boards)
         {
             if (board != null && board.Name == boardName)
             {
