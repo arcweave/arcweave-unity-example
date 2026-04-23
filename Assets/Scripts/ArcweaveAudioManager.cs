@@ -5,7 +5,7 @@ public class ArcweaveAudioManager : MonoBehaviour
 {
     public static ArcweaveAudioManager Instance { get; private set; }
 
-    public Action<AudioClip> OnAudioClipStop;
+    public event Action<AudioClip> OnAudioClipStop;
 
     private void Awake()
     {
@@ -21,6 +21,15 @@ public class ArcweaveAudioManager : MonoBehaviour
     public void SignalAudioClipStop(AudioClip clip)
     {
         OnAudioClipStop?.Invoke(clip);
+    }
+    public void SubscribeToAudioClipStop(Action<AudioClip> callback)
+    {
+        OnAudioClipStop += callback;
+    }
+
+    public void UnsubscribeFromAudioClipStop(Action<AudioClip> callback)
+    {
+        OnAudioClipStop -= callback;
     }
 
 }
