@@ -52,7 +52,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
 
         if (dialogueTrigger == null)
         {
-            // find dialouge trigger in this game object
+            // find dialogue trigger in this game object
             dialogueTrigger = GetComponent<DialogueTrigger>();
 
             if (dialogueTrigger == null)
@@ -81,24 +81,24 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// </summary>
     private void Initialize()
     {
-        if (isInitialized) return;
+        if (isInitialized)
+            return;
 
-        // Subscribe to Arcweave events
-        SubscribeToEvents();
-
-        isInitialized = true;
+        isInitialized = SubscribeToEvents();
 
         if (debugMode)
         {
-            Debug.Log($"{this.GetType().Name} initialized");
+            string status = isInitialized ? "success" : "failure";
+            Debug.Log($"{this.GetType().Name} initialized with {status} ");
         }
     }
 
     /// <summary>
     /// Subscribes to ArcweavePlayer events for element entry.
     /// </summary>
-    private void SubscribeToEvents()
+    private bool SubscribeToEvents()
     {
+        bool hasSubscribed = false;
         if (player != null)
         {
             // Unsubscribe first to prevent duplicate subscriptions
@@ -109,7 +109,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
             ArcweaveAudioManager audioManager = ArcweaveAudioManager.Instance;
             if (audioManager != null)
             {
-                audioManager.OnAudioClipStop += StopAudioClip;
+                audioManager.SubscribeToAudioClipStop(StopAudioClip);
+                hasSubscribed = true;
             }
 
             if (debugMode)
@@ -121,6 +122,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
         {
             Debug.LogWarning("Cannot subscribe to ArcweavePlayer events - player reference is null");
         }
+
+        return hasSubscribed;
     }
 
     private void StopAudioClip(AudioClip clip)
@@ -191,7 +194,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
             AudioClip clip = assetInfo.TryGetAudioClip();
             if (clip == null)
             {
-                Debug.LogWarning($"ArcweavePlayerAudio: Coudn't fetch clip for asset with index {assetInfo.asset}" +
+                Debug.LogWarning($"ArcweavePlayerAudio: Couldn't fetch clip for asset with index {assetInfo.asset}" +
                 $" and name {assetInfo.name}");
                 continue;
             }
@@ -202,10 +205,15 @@ public class ArcweavePlayerAudio : MonoBehaviour
             }
 
 
-            if (assetInfo.mode != AudioAsset.Mode.Stop)
+            if (assetInfo.mode == AudioAsset.Mode.Stop)
             {
-                ConfigureAudioSource(i, assetInfo, clip);
-
+                if (ArcweaveAudioManager.Instance != null)
+                {
+                    ArcweaveAudioManager.Instance.SignalAudioClipStop(clip);
+                }
+            }
+            else if (TryConfigureAudioSource(i, assetInfo, clip))
+            {
                 if (assetInfo.delay > 0)
                 {
                     audioSources[i].PlayDelayed(assetInfo.delay);
@@ -215,16 +223,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
                     audioSources[i].Play();
                 }
             }
-            else
-            {
-                if (ArcweaveAudioManager.Instance != null)
-                {
-                    ArcweaveAudioManager.Instance.SignalAudioClipStop(clip);
-                }
-            }
-
         }
-
     }
 
     /// <summary>
@@ -233,13 +232,12 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// <param name="audioIndex">Index of the AudioSource in the list.</param>
     /// <param name="assetInfo">Audio asset information.</param>
     /// <param name="clip">AudioClip to play.</param>
-    private void ConfigureAudioSource(int audioIndex, AudioAsset assetInfo, AudioClip clip)
+    private bool TryConfigureAudioSource(int audioIndex, AudioAsset assetInfo, AudioClip clip)
     {
-        // With the following code to add an index check:
         if (audioSources == null || audioIndex >= audioSources.Count || audioSources[audioIndex] == null)
         {
-            Debug.LogError($"AudioSource index {audioIndex} is out of range or null. Creating new AudioSource.");
-            return;
+            Debug.LogError($"AudioSource index {audioIndex} is out of range or null.");
+            return false;
         }
 
         AudioSource audioSource = audioSources[audioIndex];
@@ -256,8 +254,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
                 break;
         }
         audioSource.playOnAwake = false;
-        audioSource.spatialBlend = 1f; // 2D sound
-
+        audioSource.spatialBlend = 1f; // 3D sound
+        return true;
     }
 
     /// <summary>
@@ -274,6 +272,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
                 Destroy(source);
             }
         }
+
+        audioSources.Clear();
     }
 
     private void UnsubscribeFromEvents()
@@ -291,7 +291,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
         ArcweaveAudioManager audioManager = ArcweaveAudioManager.Instance;
         if (audioManager != null)
         {
-            audioManager.OnAudioClipStop -= StopAudioClip;
+            audioManager.UnsubscribeFromAudioClipStop(StopAudioClip);
 
             if (debugMode)
             {
@@ -300,7 +300,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
         }
         else if (debugMode)
         {
-            Debug.LogWarning("ArcweaveAudioManager is null cannot subsribe to events");
+            Debug.LogWarning("ArcweaveAudioManager is null cannot subscribe to events");
         }
     }
 
