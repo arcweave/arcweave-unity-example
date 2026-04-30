@@ -1,8 +1,20 @@
-using UnityEngine;
 using Arcweave.Project;
+using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Arcweave
 {
+    /// <summary>
+    /// Defines when the ArcweavePlayer should automatically save progress.
+    /// </summary>
+    public enum SaveMode
+    {
+        /// <summary>No automatic saving. Use RequestSave() manually to save progress.</summary>
+        Manual,
+        /// <summary>Automatically saves when the project reaches an end element (no more paths).</summary>
+        AutoSaveOnEnd
+    }
+
     ///This is not required to utilize an arweave project but can be helpful for some projects as well as a learning example.
     public class ArcweavePlayer : MonoBehaviour
     {
@@ -14,11 +26,13 @@ namespace Arcweave
         public delegate void OnWaitingInputNext(System.Action next);
         public delegate void OnProjectUpdated(Project.Project project);
 
-        public const string SAVE_KEY = "arcweave_save";
-
         public Arcweave.ArcweaveProjectAsset aw;
 
+        [Tooltip("If true, automatically starts playing the project when the scene loads.")]
         public bool autoStart = true;
+
+        [Tooltip("Controls when the player automatically saves progress. Manual requires calling RequestSave() explicitly.")]
+        public SaveMode saveMode = SaveMode.AutoSaveOnEnd;
 
         private Element currentElement;
         private bool isInitialized = false;
@@ -31,6 +45,9 @@ namespace Arcweave
         public event OnWaitingInputNext onWaitInputNext;
         public event OnProjectUpdated onProjectUpdated;
 
+        [SerializeField, Tooltip("Optional save handler component to handle save/load events. If not assigned, save/load events will be logged with a warning.")]
+        private ArcweaveSaveHandler saveHandler;
+
         void Awake()
         {
             // Ensure we have a valid project asset
@@ -40,9 +57,9 @@ namespace Arcweave
             }
         }
 
-        void Start() 
-        { 
-            if (autoStart) PlayProject(); 
+        void Start()
+        {
+            if (autoStart) PlayProject();
         }
 
         /// <summary>
@@ -50,44 +67,38 @@ namespace Arcweave
         /// </summary>
         public void EnsureInitialized()
         {
-            if (isInitialized) return;
-            
+            Debug.Log("[ArcweavePlayer] EnsureInitialized() called");
+            if (isInitialized)
+            {
+                Debug.Log("[ArcweavePlayer] Already initialized, skipping");
+                return;
+            }
+
             if (aw == null || aw.Project == null)
             {
                 Debug.LogError("Cannot initialize Arcweave project - missing project asset");
                 return;
             }
-            
+
             // Initialize the project
             aw.Project.Initialize();
-            
-            // Load saved variables if they exist
-            if (PlayerPrefs.HasKey(SAVE_KEY + "_variables"))
+
+            if(!RequestLoad())
             {
-                var variables = PlayerPrefs.GetString(SAVE_KEY + "_variables");
-                Debug.Log($"Loading variables: {variables}");
-                aw.Project.LoadVariables(variables);
-                
-                // Verify variables were loaded correctly
-                var currentVars = aw.Project.SaveVariables();
-                Debug.Log($"Current variables after loading: {currentVars}");
+                Debug.LogWarning("[ArcweavePlayer] Load request failed - no saved data available");
             }
-            else
-            {
-                Debug.Log("No saved variables found");
-            }
-            
+
             isInitialized = true;
-            
+
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
 
         /// <summary>
         /// Play the Arcweave project from the beginning
         /// </summary>
-        public void PlayProject() 
+        public void PlayProject()
         {
-            if (aw == null) 
+            if (aw == null)
             {
                 Debug.LogError("There is no Arcweave Project assigned in the inspector of Arcweave Player");
                 return;
@@ -95,17 +106,16 @@ namespace Arcweave
 
             // Ensure project is initialized
             EnsureInitialized();
-            
+
             Element startingElement = FindStartingElement();
-            
-            if (startingElement == null) 
+            if (startingElement == null)
             {
                 Debug.LogError("No starting element found with the specified criteria");
                 return;
             }
 
             if (onProjectStart != null) onProjectStart(aw.Project);
-            
+
             Next(startingElement);
         }
 
@@ -123,14 +133,14 @@ namespace Arcweave
         /// <summary>
         /// Moves to the next element through a path
         /// </summary>
-        void Next(Path path) 
+        void Next(Path path)
         {
             if (path == null)
             {
                 Debug.LogError("Cannot navigate to null path");
                 return;
             }
-            
+
             path.ExecuteAppendedConnectionLabels();
             Next(path.TargetElement);
         }
@@ -138,7 +148,7 @@ namespace Arcweave
         /// <summary>
         /// Moves to the next/an element directly
         /// </summary>
-        public void Next(Element element) 
+        public void Next(Element element)
         {
             if (element == null)
             {
@@ -146,24 +156,24 @@ namespace Arcweave
                 if (onProjectFinish != null) onProjectFinish(aw.Project);
                 return;
             }
-            
+
             currentElement = element;
             currentElement.Visits++;
-            
+
             // Check if element has content
             if (!currentElement.HasContent())
             {
                 Debug.LogWarning($"Element '{currentElement.Title}' has no content");
             }
-            
+
             if (onElementEnter != null) onElementEnter(element);
-            
+
             var currentState = currentElement.GetOptions();
-            if (currentState.hasPaths) 
+            if (currentState.hasPaths)
             {
-                if (currentState.hasOptions) 
+                if (currentState.hasOptions)
                 {
-                    if (onElementOptions != null) 
+                    if (onElementOptions != null)
                     {
                         onElementOptions(currentState, (index) => Next(currentState.Paths[index]));
                     }
@@ -171,78 +181,113 @@ namespace Arcweave
                 }
 
                 if (onWaitInputNext != null) onWaitInputNext(() => Next(currentState.Paths[0]));
+
                 return;
             }
-            
-            Save();
-            
+
+            // No paths means the project has reached an end.
+            if (saveMode == SaveMode.AutoSaveOnEnd)
+            {
+                RequestSave();
+            }
+
             currentElement = null;
             if (onProjectFinish != null) onProjectFinish(aw.Project);
         }
 
         /// <summary>
-        /// Save the current element and the variables.
+        /// Requests a save of the current game state.
+        /// If a saveHandler is assigned, it will handle saving the current element ID and project variables.
+        /// This can be called manually at any time, or automatically based on the saveMode setting.
         /// </summary>
-        public void Save() 
+        public void RequestSave()
         {
             if (currentElement == null)
             {
-                Debug.LogWarning("Cannot save - no current element");
+                Debug.LogWarning("Cannot request save - no current element");
                 return;
             }
-            
+
             var id = currentElement.Id;
             var variables = aw.Project.SaveVariables();
-            Debug.Log($"Saving variables: {variables}");
-            PlayerPrefs.SetString(SAVE_KEY+"_currentElement", id);
-            PlayerPrefs.SetString(SAVE_KEY+"_variables", variables);
-            PlayerPrefs.Save(); // Force immediate save
+            var visits = aw.Project.SaveVisits();
+
+            if (saveHandler != null)
+            {
+                saveHandler.HandleSaveRequest(id, variables, visits);
+            }
+            else
+            {
+                Debug.LogWarning("Save request was made but no handlers are set in the ArcweavePlayer");
+            }
         }
 
         /// <summary>
-        /// Loads the previously current element and the variables and moves Next to that element.
+        /// Requests loading of a previously saved game state.
+        /// If a saveHandler is assigned, it will retrieve the saved element ID and variables,
+        /// restore the project state, and navigate to the saved element.
+        /// Call this method to resume a saved game session.
         /// </summary>
-        public void Load() 
+        /// <returns>True if the load was successful and navigation occurred; false otherwise.</returns>
+        public bool RequestLoad()
         {
-            if (!PlayerPrefs.HasKey(SAVE_KEY+"_currentElement") || !PlayerPrefs.HasKey(SAVE_KEY+"_variables"))
+            Debug.Log("[ArcweavePlayer] RequestLoad() called");
+            if (saveHandler == null)
             {
-                Debug.LogWarning("Cannot load - no saved state found");
-                return;
+                Debug.LogWarning("Load request was made but no handlers are set in the ArcweavePlayer");
+                return false;
             }
-            
-            var id = PlayerPrefs.GetString(SAVE_KEY+"_currentElement");
-            var variables = PlayerPrefs.GetString(SAVE_KEY+"_variables");
-            
-            if (string.IsNullOrEmpty(id))
+
+            string elementId, variables, visits;
+            if (saveHandler.HandleLoadRequest(out elementId, out variables, out visits))
             {
-                Debug.LogError("Cannot load - invalid element ID");
-                return;
+                var element = aw.Project.ElementWithId(elementId);
+                if (element != null)
+                {
+                    Debug.Log($"[ArcweavePlayer] Loading variables before restoring state");
+                    aw.Project.LoadVariables(variables);
+                    aw.Project.LoadVisits(visits);
+                    Debug.Log($"[ArcweavePlayer] Variables loaded, navigating to element: {element.Title}");
+                    Next(element);
+                    return true;
+                }
+                Debug.LogError($"Cannot load - element with ID '{elementId}' not found");
             }
-            
-            var element = aw.Project.ElementWithId(id);
-            if (element == null)
+            else
             {
-                Debug.LogError($"Cannot load - element with ID '{id}' not found");
-                return;
+                Debug.Log("[ArcweavePlayer] Load request handler returned false - no saved data available");
             }
-            
-            aw.Project.LoadVariables(variables);
-            Next(element);
+
+            return false;
         }
 
         /// <summary>
-        /// Reset all variables to their default values
+        /// Resets all project variables to their default values and clears any saved state.
+        /// If a saveHandler is assigned, it will clear the saved data.
+        /// This is useful for starting a fresh playthrough.
         /// </summary>
-        public void ResetVariables() 
+        public void ResetVariables()
         {
-            PlayerPrefs.DeleteKey(SAVE_KEY + "_variables");
-            PlayerPrefs.DeleteKey(SAVE_KEY + "_currentElement");
-            
+            if (saveHandler != null)
+            {
+                saveHandler.ResetSave();
+            }
+
             if (aw != null && aw.Project != null)
             {
                 aw.Project.Initialize(); // This will reset all variables to their default values
                 isInitialized = true;
             }
         }
-    }
-}
+
+        private void OnApplicationQuit()
+        {
+            if (saveMode == SaveMode.AutoSaveOnEnd)
+            {
+                RequestSave();
+            }
+        }
+
+    }// end class
+
+}// end namespace
