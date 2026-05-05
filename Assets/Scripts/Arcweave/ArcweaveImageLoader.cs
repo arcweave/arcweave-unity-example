@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Handles loading Arcweave images from different sources:
 /// 1. Resources folder (original behavior)
-/// 2. [Game Folder]/arcweave/images/ (for user-added images)
+/// 2. [Game Folder]/arcweave/resources/ (for user-added images)
 /// 3. Custom search paths
 /// </summary>
 public class ArcweaveImageLoader : MonoBehaviour
@@ -72,7 +72,7 @@ public class ArcweaveImageLoader : MonoBehaviour
             Application.dataPath.Replace("/Assets", "") :
             Path.GetDirectoryName(Application.dataPath);
 
-        Debug.Log($"- Game Folder: {Path.Combine(buildFolderPath, "arcweave/images")}");
+        Debug.Log($"- Game Folder: {Path.Combine(buildFolderPath, "arcweave/resources")}");
 
         if (!string.IsNullOrEmpty(customImageFolderPath))
         {
@@ -145,7 +145,7 @@ public class ArcweaveImageLoader : MonoBehaviour
             Application.dataPath.Replace("/Assets", "") :
             Path.GetDirectoryName(Application.dataPath);
 
-        string buildImagePath = Path.Combine(buildFolderPath, "arcweave/images", fileName);
+        string buildImagePath = Path.Combine(buildFolderPath, "arcweave/resources", fileName);
         if (File.Exists(buildImagePath))
         {
             Texture2D texture = LoadImageFromFile(buildImagePath, Path.GetFileNameWithoutExtension(fileName));
@@ -299,7 +299,7 @@ public class ArcweaveImageLoader : MonoBehaviour
             Application.dataPath.Replace("/Assets", "") :
             Path.GetDirectoryName(Application.dataPath);
 
-        string buildImagePath = Path.Combine(buildFolderPath, "arcweave/images", fileName);
+        string buildImagePath = Path.Combine(buildFolderPath, "arcweave/resources", fileName);
         if (File.Exists(buildImagePath))
         {
             return true;

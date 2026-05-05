@@ -33,8 +33,6 @@ public class ArcweaveSceneController : MonoBehaviour
     public Camera sceneCamera;
     public ParticleSystem[] particleSystems;
     
-    private bool initialized = false;
-    
     private void Start()
     {
         // Initialize references if needed
@@ -70,7 +68,6 @@ public class ArcweaveSceneController : MonoBehaviour
         
         // Initialize scene
         UpdateSceneFromArcweave();
-        initialized = true;
     }
     
     /// <summary>

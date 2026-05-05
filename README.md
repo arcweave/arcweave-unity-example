@@ -33,7 +33,7 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 
 1. Export your Arcweave project in Unity format
 2. Place the JSON file in `Assets/Arcweave/project.json`
-3. Place all related images in `Assets/Resources`
+3. Place all related images and audio files in `Assets/Resources`
 4. Alternatively, use the web importer at runtime (see below)
 
 ### Import
@@ -55,14 +55,15 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 3. **Unity -- NPC**: add `DialogueTrigger` with the board name matching the Arcweave board
 4. **Unity -- GameManager**: set `Dialogue Start/End Component Name` if using component-based detection
 5. **Unity -- portraits**: place images in `Assets/Resources/` with filenames matching Arcweave
-6. **Unity -- variable binding**: use `ArcweaveObjectActivation` for object activation and `ArcweaveHealthUI` for health/slider
-7. **Build**: `File > Build Settings > Build`. The `arcweave/` folder is created automatically
+6. **Unity -- audio**: place audio files in `Assets/Resources/`; add `ArcweavePlayerAudio` to NPCs that have audio in their board
+7. **Unity -- variable binding**: use `ArcweaveObjectActivation` for object activation and `ArcweaveHealthUI` for health/slider
+8. **Build**: `File > Build Settings > Build`. The `arcweave/` folder is created automatically
 
-### Image Management
+### Media Management
 
-Images are searched in this order:
-1. Unity's `Resources` folder
-2. `[Build Folder]/arcweave/images/`
+Images and audio files are searched in the same order:
+1. Unity's `Resources` folder (baked into the build)
+2. `[Build Folder]/arcweave/resources/` (drop files here to update post-build without rebuilding)
 
 ## For End Users
 
@@ -76,7 +77,7 @@ Images are searched in this order:
 ### Importing from Local File
 
 1. Place your JSON in `[Build Folder]/arcweave/project.json`
-2. Place images in `[Build Folder]/arcweave/images/`
+2. Place images and audio files in `[Build Folder]/arcweave/resources/`
 3. Press **Esc** > click **Import Local**
 
 ### Troubleshooting
@@ -88,6 +89,8 @@ Images are searched in this order:
 - **Dialogue stuck**: the last element needs a `dialogue_end` tag or `DialogueEnd` component
 - **Object not activating**: check that `ArcweaveObjectActivation` is on an always-active object (e.g. the NPC) and points to the hidden object; variable name must match exactly (e.g. `sword_locked`); object must start **inactive**; variable must be boolean, default `true`
 - **Sword swing not unlocking**: `Component Name` in `SwordSwingHandler` must be `Attack` (exact match); the `Attack` component must be attached to the element in Arcweave; the Animator needs an `Attack` Trigger parameter
+- **Audio not playing**: verify `ArcweavePlayerAudio` is on the NPC GameObject; check that audio assets are uploaded and assigned to elements in Arcweave; audio files must be in `Assets/Resources/` (editor/build) or `[Build]/arcweave/resources/` (post-build); supported formats: mp3, wav, ogg, aiff
+- **Audio not stopping (`Stop` mode)**: `ArcweaveAudioManager` must be present in the scene; add it to a persistent GameObject (e.g. `GameManager`)
 
 ---
 
@@ -98,7 +101,8 @@ Images are searched in this order:
 ```
 Assets/Scripts/
 ├── Arcweave/       -- ArcweavePlayer, ArcweavePlayerUI, ArcweaveImageLoader,
-|                      RuntimeArcweaveImporter, ArcweaveImporterUI
+|                      RuntimeArcweaveImporter, ArcweaveImporterUI,
+|                      ArcweaveAudioManager, ArcweaveAudioLoader, ArcweavePlayerAudio
 ├── Handlers/       -- ArcweaveAttributeHandler, ArcweaveElementComponentHandler,
 |                      ArcweaveSceneController,
 |                      SwordSwingHandler, ArcweaveHealthUI, ArcweaveObjectActivation
@@ -188,9 +192,45 @@ Reads the `SceneSettings` component on project load/import (in `Handlers/` folde
 | `nightValue` | Value for nighttime (default: `Night`) |
 | `nightColor` | Background color for night (default: black) |
 
+#### ArcweaveAudioManager
+
+Optional singleton (`DontDestroyOnLoad`) that acts as a scene-wide event bus for audio stop signals. Required only when using the `Stop` playback mode on audio assets — it broadcasts a stop signal to all `ArcweavePlayerAudio` instances in the scene so a clip can be halted across multiple characters simultaneously.
+
+Add it to any persistent GameObject (e.g. `GameManager`). If not present, `Once` and `Loop` modes work normally; only `Stop` mode has no effect.
+
+#### ArcweavePlayerAudio
+
+Add to any NPC that has audio assets assigned to its Arcweave elements. Subscribes to `ArcweavePlayer.onElementEnter` and plays the audio assets attached to each element, but only while the `DialogueTrigger` reports an active dialogue — preventing stray audio if events fire outside a conversation.
+
+Multiple audio assets can be assigned to a single element in Arcweave; each is played independently with its own settings. Audio assets are configured entirely in Arcweave (upload via the **Assets** tab, assign to elements). No audio clips are referenced directly in Unity.
+
+For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity `Resources`). If that returns null, it falls back to `ArcweaveAudioLoader`, which loads the file asynchronously from `[Build]/arcweave/resources/` and caches it. This means audio files can be added or swapped post-build without rebuilding.
+
+| Inspector Field | Purpose |
+|----------------|---------|
+| `player` | Reference to `ArcweavePlayer` (auto-found on the same GameObject if empty) |
+| `dialogueTrigger` | Reference to `DialogueTrigger` (auto-found on the same GameObject if empty) |
+| `debugMode` | Enable console logs for audio events |
+
+**Playback modes (set in Arcweave):**
+
+| Mode | Behavior |
+|------|----------|
+| `Once` | Plays the clip once, then stops |
+| `Loop` | Loops the clip until explicitly stopped |
+| `Stop` | Stops the named clip on all `ArcweavePlayerAudio` instances (requires `ArcweaveAudioManager` in scene) |
+
+Each audio asset also supports `volume` (0–1) and `delay` (seconds before playback starts), both set in Arcweave. Delayed clips use `AudioSource.PlayDelayed()`. Non-looping `AudioSource` components are destroyed when the element changes; looping sources persist until explicitly stopped via `Stop` mode.
+
 #### ArcweaveImageLoader
 
-Singleton that loads images by filename from Resources, then `[Build]/arcweave/images/`, then custom paths. Caches loaded images for performance.
+Singleton that loads images by filename from Resources, then `[Build]/arcweave/resources/`, then custom paths. Caches loaded images for performance.
+
+#### ArcweaveAudioLoader
+
+Singleton that loads audio files at runtime using the same pattern as `ArcweaveImageLoader`. Checks Unity's `Resources` folder first, then `[Build]/arcweave/resources/`. Loading from the build folder is async (`UnityWebRequest`); clips are cached by filename after the first load.
+
+Used automatically by `ArcweavePlayerAudio` as a fallback when `TryGetAudioClip()` returns null — no manual setup needed. To support post-build audio updates, place audio files in `[Build]/arcweave/resources/` alongside images.
 
 #### RuntimeArcweaveImporter
 
@@ -230,7 +270,7 @@ Follows a target Transform with mouse-driven rotation. Disabled by `GameManager`
 
 #### ArcweaveBuildProcessor
 
-Editor-only post-build hook. Creates `arcweave/` and `arcweave/images/` in the build output; copies `project.json` if present.
+Editor-only post-build hook. Creates `arcweave/` and `arcweave/resources/` in the build output; copies `project.json` if present.
 
 ---
 

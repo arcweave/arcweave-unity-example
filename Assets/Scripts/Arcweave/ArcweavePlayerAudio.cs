@@ -173,55 +173,53 @@ public class ArcweavePlayerAudio : MonoBehaviour
         AudioAsset[] audioAssets = element.GetAudioAssets();
         if (audioAssets == null || audioAssets.Length == 0)
         {
-            if (debugMode)
-            {
-                Debug.Log("No audio assets for this element");
-            }
+            if (debugMode) Debug.Log("No audio assets for this element");
             return;
         }
 
-        if (audioSources == null)
-        {
-            audioSources = new List<AudioSource>();
-        }
-
-        // Clear AudioSources if needed
+        if (audioSources == null) audioSources = new List<AudioSource>();
         ClearAudioSources();
 
+        StartCoroutine(PlayAudioAssetsCoroutine(audioAssets));
+    }
+
+    private System.Collections.IEnumerator PlayAudioAssetsCoroutine(AudioAsset[] audioAssets)
+    {
         for (int i = 0; i < audioAssets.Length; i++)
         {
             AudioAsset assetInfo = audioAssets[i];
+
             AudioClip clip = assetInfo.TryGetAudioClip();
+
+            if (clip == null)
+            {
+                AudioClip loaded = null;
+                yield return StartCoroutine(ArcweaveAudioLoader.Instance.LoadAudioClip(
+                    assetInfo.name, c => loaded = c));
+                clip = loaded;
+            }
+
             if (clip == null)
             {
                 Debug.LogWarning($"ArcweavePlayerAudio: Couldn't fetch clip for asset with index {assetInfo.asset}" +
-                $" and name {assetInfo.name}");
+                    $" and name {assetInfo.name}");
                 continue;
             }
 
             if (i >= audioSources.Count)
-            {
                 audioSources.Add(gameObject.AddComponent<AudioSource>());
-            }
-
 
             if (assetInfo.mode == AudioAsset.Mode.Stop)
             {
                 if (ArcweaveAudioManager.Instance != null)
-                {
                     ArcweaveAudioManager.Instance.SignalAudioClipStop(clip);
-                }
             }
             else if (TryConfigureAudioSource(i, assetInfo, clip))
             {
                 if (assetInfo.delay > 0)
-                {
                     audioSources[i].PlayDelayed(assetInfo.delay);
-                }
                 else
-                {
                     audioSources[i].Play();
-                }
             }
         }
     }

@@ -983,7 +983,6 @@ MonoBehaviour:
   speedAnimatorParam: Speed
   attackAnimatorParam: Attack
   attackStateName: Attack
-  attackSpeedParam: AttackSpeed
   canSwing: 0
 --- !u!136 &289867029
 CapsuleCollider:
@@ -1050,7 +1049,6 @@ MonoBehaviour:
   arcweavePlayer: {fileID: 1168690309}
   componentName: attack
   playerController: {fileID: 289867024}
-  swingSpeedAttribute: SwingSpeed
 --- !u!1001 &298503979
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3101,6 +3099,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1501610687}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1501610689}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 925e5be13d12dea48b7d54b3b75aebd6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1501610688}
@@ -8930,6 +8931,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 723252307}
+  - component: {fileID: 723252309}
   - component: {fileID: 723252306}
   - component: {fileID: 723252308}
   m_Layer: 0
@@ -9004,6 +9006,18 @@ MonoBehaviour:
   sceneCamera: {fileID: 330585545}
   particleSystems:
   - {fileID: 600165901}
+--- !u!114 &723252309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 723252305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589b24eeb9af1db488e695f7f5085fea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &736294456
 GameObject:
   m_ObjectHideFlags: 0
@@ -9358,6 +9372,21 @@ MonoBehaviour:
   healthyThreshold: 0.4
   sliderColorComponentName: Wanda Elandor
   sliderColorAttribute: Color
+--- !u!114 &766655648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 766655643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3582b0a0ffdc0bf43a3d55d1da860af6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1168690309}
+  dialogueTrigger: {fileID: 766655644}
+  debugMode: 0
 --- !u!4 &787797750 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: aca6bdeac5e351644b28323dca575697, type: 3}
@@ -9869,7 +9898,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5786447561841143916, guid: add30ec50e0d6d94582dfe1e2b8e914c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: add30ec50e0d6d94582dfe1e2b8e914c, type: 3}
 --- !u!1001 &835354901
 PrefabInstance:
@@ -11191,7 +11223,7 @@ MonoBehaviour:
   apiKey: 
   projectHash: 
   localJsonFilePath: arcweave/project.json
-  useImageLoadingProxy: 1
+  useImageLoadingProxy: 0
   preloadImages: 1
   onImportStarted:
     m_PersistentCalls:
@@ -13739,6 +13771,21 @@ MonoBehaviour:
   healthyThreshold: 0.4
   sliderColorComponentName: Healer
   sliderColorAttribute: Color
+--- !u!114 &1501610689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501610682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3582b0a0ffdc0bf43a3d55d1da860af6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1168690309}
+  dialogueTrigger: {fileID: 1501610684}
+  debugMode: 0
 --- !u!1 &1502215236
 GameObject:
   m_ObjectHideFlags: 0
@@ -14205,7 +14252,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1601662581}
-  - component: {fileID: 1601662582}
   m_Layer: 0
   m_Name: Rain
   m_TagString: Untagged
@@ -14229,18 +14275,6 @@ Transform:
   - {fileID: 600165898}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1601662582
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1601662579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 354bf8bf5b393574b85beeb107f51b2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1602573147 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 99701d123346c584a98f81a817029dea, type: 3}
@@ -18038,6 +18072,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 666575202}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 766655648}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 74265c01cab0aa54fa01c7600dc830e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 766655644}
