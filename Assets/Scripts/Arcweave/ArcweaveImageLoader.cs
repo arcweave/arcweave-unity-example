@@ -427,9 +427,9 @@ public class ArcweaveImageLoader : MonoBehaviour
         int loadedCount = 0;
         
         // Preload board cover images
-        if (project.boards != null)
+        if (project.Boards != null)
         {
-            foreach (var board in project.boards)
+            foreach (var board in project.Boards)
             {
                 // Le board non hanno la proprietà Cover, quindi processiamo solo gli elementi nei board
                 // Nota: Rimuovendo il controllo sul board.Cover che non esiste
