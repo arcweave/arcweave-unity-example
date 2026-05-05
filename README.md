@@ -51,12 +51,12 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 ### How to Use This Template
 
 1. **Arcweave project**: create boards (one per NPC), add variables, write conditional branches, attach components to elements, export
-2. **Unity -- import**: assign JSON to `ArcweaveProjectAsset`, click Generate Project
-3. **Unity -- NPC**: add `DialogueTrigger` with the board name matching the Arcweave board
-4. **Unity -- GameManager**: set `Dialogue Start/End Component Name` if using component-based detection
-5. **Unity -- portraits**: place images in `Assets/Resources/` with filenames matching Arcweave
-6. **Unity -- audio**: place audio files in `Assets/Resources/`; add `ArcweavePlayerAudio` to NPCs that have audio in their board
-7. **Unity -- variable binding**: use `ArcweaveObjectActivation` for object activation and `ArcweaveHealthUI` for health/slider
+2. **Unity - import**: assign JSON to `ArcweaveProjectAsset`, click Generate Project
+3. **Unity - NPC**: add `DialogueTrigger` with the board name matching the Arcweave board
+4. **Unity - GameManager**: set `Dialogue Start/End Component Name` if using component-based detection
+5. **Unity - portraits**: place images in `Assets/Resources/` with filenames matching Arcweave
+6. **Unity - audio**: place audio files in `Assets/Resources/`; add `ArcweavePlayerAudio` to NPCs that have audio in their board
+7. **Unity - variable binding**: use `ArcweaveObjectActivation` for object activation and `ArcweaveHealthUI` for health/slider
 8. **Build**: `File > Build Settings > Build`. The `arcweave/` folder is created automatically
 
 ### Media Management

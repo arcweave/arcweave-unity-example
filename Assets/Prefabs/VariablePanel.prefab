@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180.63, y: -28.981503}
-  m_SizeDelta: {x: 345.26, y: 0}
+  m_AnchoredPosition: {x: 176.6372, y: -17}
+  m_SizeDelta: {x: 337.2455, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4875591628945349204
 CanvasRenderer:
@@ -79,9 +79,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1.2
-  m_Text: '
-
-'
+  m_Text: 
 --- !u!114 &4370081770259332938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,7 +108,7 @@ GameObject:
   - component: {fileID: 5847021891251730679}
   - component: {fileID: 415232946255318178}
   m_Layer: 5
-  m_Name: VariablePanel
+  m_Name: VariableBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -133,9 +131,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 179.475, y: -67.0315}
+  m_AnchoredPosition: {x: 178.97742, y: -37.050003}
   m_SizeDelta: {x: 353.26, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &2686569873414585594
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -191,7 +189,7 @@ MonoBehaviour:
     m_Right: 8
     m_Top: 6
     m_Bottom: 8
-  m_ChildAlignment: 0
+  m_ChildAlignment: 2
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 1
@@ -389,10 +387,10 @@ RectTransform:
   - {fileID: 4467489095524621738}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -224, y: 240.73102}
-  m_SizeDelta: {x: 358.95, y: 310.5469}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -210, y: -94}
+  m_SizeDelta: {x: 358.95, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2295802140372570265
 CanvasRenderer:
@@ -449,7 +447,7 @@ MonoBehaviour:
     m_Right: 8
     m_Top: 0
     m_Bottom: 8
-  m_ChildAlignment: 1
+  m_ChildAlignment: 2
   m_Spacing: 3
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
