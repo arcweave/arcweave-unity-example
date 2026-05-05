@@ -31,7 +31,6 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
     // State tracking
     private bool isImporting = false;
-    private bool hasLoadedPrepackagedJson = false;
     private ArcweaveImageLoader imageLoader;
 
     private void Awake()
@@ -193,7 +192,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         // 1. Main project folder path for local images (most common location)
         string projectFolderPath = Path.Combine(
             Path.GetDirectoryName(Application.dataPath),
-            "arcweave/images"
+            "arcweave/resources"
         );
         AddImageSearchPath(projectFolderPath);
 
@@ -213,7 +212,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         AddImageSearchPath(altImagePath);
 
         // 5. Application's persistent data path for runtime-added images
-        string persistentDataPath = Path.Combine(Application.persistentDataPath, "arcweave/images");
+        string persistentDataPath = Path.Combine(Application.persistentDataPath, "arcweave/resources");
         AddImageSearchPath(persistentDataPath);
 
         // Enable debug logging temporarily to track image loading
@@ -270,10 +269,10 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     {
         try
         {
-            // Create main arcweave/images folder
+            // Create main arcweave/resources folder
             string projectFolderPath = Path.Combine(
                 Path.GetDirectoryName(Application.dataPath),
-                "arcweave/images"
+                "arcweave/resources"
             );
 
             if (!Directory.Exists(projectFolderPath))
@@ -354,7 +353,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
             // Suggest folder locations
             Debug.Log("Images should be placed in one of these locations:");
-            Debug.Log($"1. {Path.Combine(Path.GetDirectoryName(Application.dataPath), "arcweave/images")}");
+            Debug.Log($"1. {Path.Combine(Path.GetDirectoryName(Application.dataPath), "arcweave/resources")}");
             Debug.Log($"2. {Path.Combine(Application.dataPath, "Resources")}");
         }
 
