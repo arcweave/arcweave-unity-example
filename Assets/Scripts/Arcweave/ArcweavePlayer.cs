@@ -1,5 +1,4 @@
 using Arcweave.Project;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Arcweave
@@ -83,7 +82,7 @@ namespace Arcweave
             // Initialize the project
             aw.Project.Initialize();
 
-            if(!RequestLoad())
+            if (!RequestLoad())
             {
                 Debug.LogWarning("[ArcweavePlayer] Load request failed - no saved data available");
             }
@@ -195,6 +194,7 @@ namespace Arcweave
             if (onProjectFinish != null) onProjectFinish(aw.Project);
         }
 
+#region SAVES
         /// <summary>
         /// Requests a save of the current game state.
         /// If a saveHandler is assigned, it will handle saving the current element ID and project variables.
@@ -248,7 +248,7 @@ namespace Arcweave
                     aw.Project.LoadVariables(variables);
                     aw.Project.LoadVisits(visits);
                     Debug.Log($"[ArcweavePlayer] Variables loaded, navigating to element: {element.Title}");
-                    Next(element);
+                    aw.Project.StartingElement = element; // Set the starting element to the loaded element
                     return true;
                 }
                 Debug.LogError($"Cannot load - element with ID '{elementId}' not found");
@@ -279,6 +279,17 @@ namespace Arcweave
                 isInitialized = true;
             }
         }
+
+        public bool HasSave()
+        {
+            if (saveHandler != null)
+            {
+                saveHandler.HasSave();
+            }
+
+            return false;
+        }
+#endregion
 
         private void OnApplicationQuit()
         {

@@ -43,10 +43,7 @@ public class ArcweaveSaveHandler : MonoBehaviour
         variables = null;
         visits = null;
 
-        if (!PlayerPrefs.HasKey(SAVE_KEY + "_currentElement")
-            || !PlayerPrefs.HasKey(SAVE_KEY + "_variables")
-            || !PlayerPrefs.HasKey(SAVE_KEY + "_visits")
-           )
+        if (!HasSave())
         {
             Debug.LogWarning("[ArcweaveSaveHandler] No saved state found");
             return false;
@@ -81,5 +78,18 @@ public class ArcweaveSaveHandler : MonoBehaviour
         {
             Debug.Log("Save state reset");
         }
+    }
+
+    public bool HasSave()
+    {
+         if (!PlayerPrefs.HasKey(SAVE_KEY + "_currentElement")
+            || !PlayerPrefs.HasKey(SAVE_KEY + "_variables")
+            || !PlayerPrefs.HasKey(SAVE_KEY + "_visits")
+           )
+        {
+            return false;
+        }
+
+        return true;
     }
 }
