@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using Arcweave.Project;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using Arcweave.Project;
-using System.Text;
-using System.Collections;
 
 namespace Arcweave
 {
@@ -179,17 +180,47 @@ namespace Arcweave
             if (player?.aw?.Project == null) return;
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Variables:");
-
+            StringBuilder sbGlobalVar = new StringBuilder();
             foreach (var variable in player.aw.Project.Variables)
             {
                 if (variable != null)
                 {
-                    sb.AppendLine($"{variable.Name}: {variable.Value}");
+                    if(variable.Parent == null)
+                    {
+                        sb.AppendLine($"{variable.Name}: {variable.Value}");
+                    }
+                }
+            }
+
+            foreach (var board in player.aw.Project.Boards)
+            {
+
+                if (board == null)
+                {
+                    continue;
+                }
+
+                if (board.Variables != null && board.Variables.Count > 0)
+                {
+                    foreach (var variable in board.Variables)
+                    {
+                        if (variable != null)
+                        {
+                            string variableName = variable.Name;
+                            sb.AppendLine($"{board.Name}.{variableName}: {variable.Value?.ToString()}");
+                        }
+                    }
+
                 }
             }
 
             variablesText.text = sb.ToString();
+            if(sbGlobalVar.Length > 0)
+            {
+                sb.Insert(0, "Global Variables:\n");
+                variablesText.text += sbGlobalVar.ToString();
+            }
+
         }
 
         /// <summary>
