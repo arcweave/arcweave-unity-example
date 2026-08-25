@@ -40,16 +40,40 @@ namespace Arcweave.Project
 
         ///<summary>Should be called once before using the project.</summary>
         public void Initialize() {
+
+            Variables?.RemoveAll(v => v == null);
+
+            if (Boards != null)
+            {
+                foreach (var board in Boards)
+                {
+                    board?.Variables?.RemoveAll(v => v == null);
+                }
+            }
+
             ResetVariablesToDefaultValues();
             ResetVisits();
             foreach ( var board in Boards ) {
+                if (board == null)
+                {
+                    continue;
+                }
+
                 foreach ( var node in board.Nodes ) {
+                    if (node == null)
+                    {
+                        continue;
+                    }
                     node.InitializeInProject(this);
                 }
             }
 
             foreach (var component in components)
             {
+                if (component == null)
+                {
+                    continue;
+                }
                 component.InitializeInProject(this);
             }
         }
@@ -61,8 +85,20 @@ namespace Arcweave.Project
 
         ///<summary>Reset the number of visits to 0 for all elements.</summary>
         public void ResetVisits() {
-            foreach ( var board in Boards ) {
-                foreach ( var element in board.Nodes.OfType<Element>() ) {
+            foreach ( var board in Boards )
+            {
+                if (board == null)
+                {
+                    continue;
+                }
+
+                foreach ( var element in board.Nodes.OfType<Element>() ) 
+                {
+                    if(element == null)
+                    {
+                        continue;
+                    }
+
                     element.Visits = 0;
                 }
             }
@@ -178,11 +214,16 @@ namespace Arcweave.Project
         ///<summary>Reset all global and board-scoped variables to their default values.</summary>
         public void ResetVariablesToDefaultValues()
         {
-            if (Variables != null)
+            if (Variables != null && Variables.Count > 0)
+            {
                 foreach (var variable in Variables)
                 {
-                    variable.ResetToDefaultValue();
+                    if (variable != null)
+                    {
+                        variable.ResetToDefaultValue();
+                    }
                 }
+            }
         }
 
         ///<summary>Returns a string containing the saved state of all global and board-scoped variables.</summary>

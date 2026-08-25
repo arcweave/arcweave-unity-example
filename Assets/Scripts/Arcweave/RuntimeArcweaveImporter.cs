@@ -309,9 +309,9 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         List<string> missingImages = new List<string>();
         
         // Process element images
-        if (project.boards != null)
+        if (project.Boards != null)
         {
-            foreach (var board in project.boards)
+            foreach (var board in project.Boards)
             {
                 if (board != null && board.Nodes != null)
                 {
