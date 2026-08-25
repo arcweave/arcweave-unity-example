@@ -72,14 +72,19 @@ namespace Arcweave
             GUILayout.Label("Global Variables:", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             bool hasGlobalVariables = false;
-            foreach ( var variable in aw.Project.Variables)
+
+            if(aw.Project.Variables.Count > 0)
             {
-                if(variable.Parent == null)
+                foreach (var variable in aw.Project.Variables)
                 {
-                    hasGlobalVariables = true;
-                    EditorGUILayout.LabelField(variable.Name, variable.Value?.ToString());
+                    if (variable != null && variable.Parent == null)
+                    {
+                        hasGlobalVariables = true;
+                        EditorGUILayout.LabelField(variable.Name, variable.Value?.ToString());
+                    }
                 }
             }
+
             if (!hasGlobalVariables)
             {
                 EditorGUILayout.LabelField("(None)");
@@ -93,6 +98,12 @@ namespace Arcweave
             bool hasBoardVariables = false;
             foreach (var board in aw.Project.Boards)
             {
+
+                if (board == null)
+                {
+                    continue;
+                }
+
                 if (board.Variables != null && board.Variables.Count > 0)
                 {
                     hasBoardVariables = true;
@@ -101,8 +112,11 @@ namespace Arcweave
                     EditorGUI.indentLevel++;
                     foreach (var variable in board.Variables)
                     {
-                        string variableName = variable.Name;
-                        EditorGUILayout.LabelField(variableName, variable.Value?.ToString());
+                        if (variable != null)
+                        {
+                            string variableName = variable.Name;
+                            EditorGUILayout.LabelField(variableName, variable.Value?.ToString());
+                        }
                     }
                     EditorGUI.indentLevel -= 2;
                     GUILayout.Space(5);
