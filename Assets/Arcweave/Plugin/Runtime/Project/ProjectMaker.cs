@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Security.Claims;
 using Arcweave.FullSerializer;
 using Arcweave.Interpreter.INodes;
+using UnityEngine;
 
 namespace Arcweave.Project
 {
@@ -104,7 +106,11 @@ namespace Arcweave.Project
             var boardNotes = new List<Note>();
             foreach ( var key in GetProp(jboards, id, "notes").AsList ) { boardNotes.Add(TryMakeNote(key.AsString)); }
 
-            return boards[id] = new Board(id, name, boardNodes, boardNotes);
+            string customId = null;
+            if ( HasProperty(jboards, id, "customId", out var customIdProp) ) {
+                customId = customIdProp.AsString;
+            }
+            return boards[id] = new Board(id, name, customId, boardNodes, boardNotes);
         }
 
         //..
@@ -136,11 +142,10 @@ namespace Arcweave.Project
                 }
 
                 var components = new List<Component>();
-                if ( HasProperty(jelements, id, "components", out var componentids) ) {
-                    foreach ( var componentid in componentids.AsList ) {
-                        var component = TryMakeComponent(componentid.AsString);
-                        if ( component != null ) components.Add(component); //null = has children
-                    }
+                var componentids = GetProp(jelements, id, "components");
+                foreach ( var componentid in componentids.AsList ) {
+                    var component = TryMakeComponent(componentid.AsString);
+                    if ( component != null ) components.Add(component); //null = has children
                 }
 
                 var attributes = new List<Attribute>();
@@ -151,7 +156,9 @@ namespace Arcweave.Project
                 }
 
                 var cover = MakeCover(jelements, id);
-                ( node as Element ).Set(id, pos, outputs, title, content, components, attributes, cover, theme);
+                AudioAsset[] audioAssets = MakeAudioAssets(jelements, id);
+
+                (node as Element).Set(id, pos, outputs, title, content, components, attributes, cover, theme, audioAssets);
             }
             return (Element)node;
         }
@@ -302,11 +309,38 @@ namespace Arcweave.Project
             var name = GetProp(jvariables, id, "name")?.AsString;
             var type = GetProp(jvariables, id, "type")?.AsString;
             var jvalue = GetProp(jvariables, id, "value");
+            var cType = GetProp(jvariables, id, "cType")?.AsString;
+
             if ( type == "integer" ) { value = (int)jvalue.AsInt64; }
-            if ( type == "float" ) { value = (float)jvalue.AsDouble; }
+
+            if (type == "float")
+            {
+                if (jvalue.Type == fsDataType.Double)
+                {
+                    value = (double)jvalue.AsDouble;
+                }
+                else
+                {
+                    value = (double)jvalue.AsInt64;
+                }
+            }
             if ( type == "string" ) { value = (string)jvalue.AsString; }
             if ( type == "boolean" ) { value = (bool)jvalue.AsBool; }
-            return new Variable(name, value);
+            if (!string.IsNullOrEmpty(cType) && cType == "boards")
+            {
+                var boardId = GetProp(jvariables, id, "cId")?.AsString;
+                if (boards.TryGetValue(boardId, out var board))
+                {
+                    var variable = new Variable(id, name, value, board);
+                    board.AddVariable(variable);
+                    return variable;
+                }
+                else
+                {
+                    Debug.LogWarning($"Variable '{name}' is supposed to be attached to board with id '{boardId}', but no such board was found.");
+                }
+            }
+            return new Variable(id, name, value);
         }
 
         ///----------------------------------------------------------------------------------------------
@@ -331,6 +365,51 @@ namespace Arcweave.Project
             return null;
         }
 
+        // Audio asset can be more than one per element
+        AudioAsset[] MakeAudioAssets(fsData source, string id)
+        {
+            // Check if "assets.audio" exists and is a list (array)
+            if (HasProperty(source, id, "assets.audio", out var audioProp) && audioProp.Type == fsDataType.Array)
+            {
+                var audioList = audioProp.AsList;
+                var audioAssets = new AudioAsset[audioList.Count];
+                for (int i = 0; i < audioList.Count; i++)
+                {
+                    audioAssets[i] = MakeAudioAsset(audioList[i]);
+                }
+                return audioAssets;
+            }
+            return null;
+        }
+
+        private AudioAsset MakeAudioAsset(fsData audioEntry)
+        {
+            var audioId = audioEntry["id"]?.AsString;
+            var mode = audioEntry["mode"]?.AsString;
+            string asset = audioEntry["asset"]?.AsString;
+            var delayProp = audioEntry["delay"];
+            float delay = 0f;
+            if (delayProp != null)
+            {
+                delay = delayProp.Type == fsDataType.Double ? (float)delayProp.AsDouble : (float)delayProp.AsInt64;
+            }
+
+            if (string.IsNullOrEmpty(asset))
+            {
+                UnityEngine.Debug.LogWarning($"Audio asset with id {audioId} is missing the 'asset' field, " +
+                $"which is required to retrieve the other info");
+                return new AudioAsset(audioId, mode, asset, delay, null, 1f);
+            }
+            // Name and volume are stored in "assets" so we look for them using the "asset" value, which is the id of the audio asset
+            var name = jproject["assets." + asset + ".name"]?.AsString;
+            var volumeProp = jproject["assets." + asset + ".volume"];
+            float volume = 1f;
+            if (volumeProp != null)
+            {
+                volume = volumeProp.Type == fsDataType.Double ? (float)volumeProp.AsDouble : (float)volumeProp.AsInt64;
+            }
+            return new AudioAsset(audioId, mode, asset, delay, name, volume);
+        }
         ///----------------------------------------------------------------------------------------------
 
         //...
