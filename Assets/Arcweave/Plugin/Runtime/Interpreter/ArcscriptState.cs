@@ -13,8 +13,6 @@ namespace Arcweave.Interpreter
         public ArcscriptOutputs Outputs;
         public string currentElement { get; set; }
         public IProject project { get; set; }
-        
-        public Dictionary<string, Variable> Variables { get; } = new Dictionary<string, Variable>();
 
         private System.Action<string> _emit;
         public ArcscriptState(string elementId, IProject project, System.Action<string>? emit = null)
@@ -22,17 +20,6 @@ namespace Arcweave.Interpreter
             Outputs = new ArcscriptOutputs();
             this.currentElement = elementId;
             this.project = project;
-            
-            this.Variables = project.Variables.ToDictionary(variable => variable.Id, variable => variable);
-            foreach (var projectBoard in project.Boards)
-            {
-                if (projectBoard.Variables == null) continue;
-                foreach (var projectBoardVariable in projectBoard.Variables)
-                {
-                    Variables.TryAdd(projectBoardVariable.Id, projectBoardVariable);
-                }
-            }
-            
             if (emit != null)
             {
                 _emit = emit;
@@ -43,7 +30,7 @@ namespace Arcweave.Interpreter
             }
         }
 
-        public IVariable? GetVariable(string name, string? scope = null) {
+        public IVariable? GetVariable(string name) {
             try
             {
                 return Variables.Values.FirstOrDefault(variable =>
@@ -97,11 +84,7 @@ namespace Arcweave.Interpreter
         {
             foreach (var board in project.Boards)
             {
-#if GODOT
-                foreach (var element in board.Value.Elements)
-#else
                 foreach (var element in board.Nodes.OfType<Element>())
-#endif
                 {
                     element.Visits = 0;
                 }

@@ -54,11 +54,6 @@ namespace Arcweave.Project
             ResetVariablesToDefaultValues();
             ResetVisits();
             foreach ( var board in Boards ) {
-                if (board == null)
-                {
-                    continue;
-                }
-
                 foreach ( var node in board.Nodes ) {
                     if (node == null)
                     {
@@ -85,20 +80,8 @@ namespace Arcweave.Project
 
         ///<summary>Reset the number of visits to 0 for all elements.</summary>
         public void ResetVisits() {
-            foreach ( var board in Boards )
-            {
-                if (board == null)
-                {
-                    continue;
-                }
-
-                foreach ( var element in board.Nodes.OfType<Element>() ) 
-                {
-                    if(element == null)
-                    {
-                        continue;
-                    }
-
+            foreach ( var board in Boards ) {
+                foreach ( var element in board.Nodes.OfType<Element>() ) {
                     element.Visits = 0;
                 }
             }

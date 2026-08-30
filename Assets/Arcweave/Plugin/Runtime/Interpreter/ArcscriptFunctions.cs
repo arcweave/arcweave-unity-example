@@ -16,27 +16,19 @@ namespace Arcweave.Interpreter
 
         public class FunctionDefinition
         {
-            public int? MinArgs { get; set; }
-            public int? MaxArgs { get; set; }
-            public Type ArgumentsType { get; set; }
-            public Type ReturnType { get; set; }
-        }
-
-        public static Dictionary<string, FunctionDefinition> FunctionDefinitions =
-        new() {
-            { "abs", new FunctionDefinition { MinArgs=1, MaxArgs=1, ReturnType = typeof(int)} },
-            { "max", new FunctionDefinition { MinArgs=2, ReturnType =  typeof(double)} },
-            { "min", new FunctionDefinition { MinArgs=2, ReturnType = typeof(double)} },
-            { "random", new FunctionDefinition { MinArgs=0, MaxArgs=0, ReturnType = typeof(double)} },
-            { "roll", new FunctionDefinition { MinArgs=1, MaxArgs=2, ReturnType = typeof(int)} },
-            { "round", new FunctionDefinition { MinArgs=1, MaxArgs=1, ReturnType = typeof(int)} },
-            { "sqr", new FunctionDefinition { MinArgs=1, MaxArgs=1, ReturnType = typeof(double)} },
-            { "sqrt", new FunctionDefinition { MinArgs=1, MaxArgs=1, ReturnType = typeof(double)} },
-            { "visits", new FunctionDefinition { MinArgs=0, MaxArgs=1, ReturnType = typeof(int)} },
-            { "show", new FunctionDefinition { MinArgs=1, ReturnType = typeof(string)} },
-            { "reset", new FunctionDefinition { MinArgs=1, ArgumentsType = typeof(Variable), ReturnType = typeof(void)} },
-            { "resetAll", new FunctionDefinition { MinArgs=0, ArgumentsType = typeof(Variable), ReturnType = typeof(void)} },
-            { "resetVisits", new FunctionDefinition { MinArgs=0, MaxArgs = 0, ReturnType = typeof(void)} },
+            { "sqrt",  typeof (double) },
+            { "sqr", typeof (double) },
+            { "abs", typeof (double) },
+            { "random", typeof (double) },
+            { "roll", typeof (int) },
+            { "show", typeof (string) },
+            { "reset", typeof (void) },
+            { "resetAll", typeof (void) },
+            { "round", typeof (int) },
+            { "min", typeof (double) },
+            { "max", typeof (double) },
+            { "visits", typeof (int) },
+            { "resetVisits", typeof (void) },
         };
 
         public Functions(string elementId, IProject project, ArcscriptState state) {
