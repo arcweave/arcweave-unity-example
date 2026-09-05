@@ -1,8 +1,8 @@
-﻿using Arcweave.Project;
+﻿using Arcweave.Interpreter.INodes;
+using Arcweave.Project;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -180,46 +180,43 @@ namespace Arcweave
             if (player?.aw?.Project == null) return;
 
             StringBuilder sb = new StringBuilder();
-            StringBuilder sbGlobalVar = new StringBuilder();
+            bool hasGlobalVariables = false;
+            bool hasBoardVariables = false;
+
+            // Globals
             foreach (var variable in player.aw.Project.Variables)
             {
-                if (variable != null)
+                if (variable == null || variable.Parent != null) continue;
+
+                if (!hasGlobalVariables)
                 {
-                    if(variable.Parent == null)
-                    {
-                        sb.AppendLine($"{variable.Name}: {variable.Value}");
-                    }
+                    sb.AppendLine("Global Variables:");
+                    hasGlobalVariables = true;
                 }
+
+                sb.AppendLine($"{variable.Name}: {variable.Value}");
             }
 
-            foreach (var board in player.aw.Project.Boards)
+            //Boards
+            foreach (var variable in player.aw.Project.Variables)
             {
-
-                if (board == null)
+                if (variable.Parent != null)
                 {
-                    continue;
-                }
-
-                if (board.Variables != null && board.Variables.Count > 0)
-                {
-                    foreach (var variable in board.Variables)
+                    if (variable.Parent is Board b)
                     {
-                        if (variable != null)
+                        if (!hasBoardVariables)
                         {
-                            string variableName = variable.Name;
-                            sb.AppendLine($"{board.Name}.{variableName}: {variable.Value?.ToString()}");
+                            if (sb.Length > 0) sb.AppendLine();
+                            sb.AppendLine("Board Variables:");
+                            hasBoardVariables = true;
                         }
-                    }
 
+                        var boardLabel = string.IsNullOrEmpty(b.Name) ? b.Id : b.Name;
+                        sb.AppendLine($"{boardLabel}.{variable.Name}: {variable.Value}");
+                    }
                 }
             }
-
             variablesText.text = sb.ToString();
-            if(sbGlobalVar.Length > 0)
-            {
-                sb.Insert(0, "Global Variables:\n");
-                variablesText.text += sbGlobalVar.ToString();
-            }
 
         }
 
