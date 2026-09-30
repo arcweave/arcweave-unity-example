@@ -82,7 +82,7 @@ Images and audio files are searched in the same order:
 
 ### Troubleshooting
 
-- **"Variable with ID '...' not found" after updating the project**: old saved progress may reference variables that no longer exist. Stop Play mode, choose **Tools > Arcweave > Reset Saved Progress**, clear the Console, then press Play again. This deletes the demo's saved variables and dialogue position; other preferences and project assets are preserved. The command is only available outside Play mode.
+- **Progress after updating the project**: saved variables are restored only when their IDs and types still match. Removed variables are ignored, while new variables and variables with incompatible values use their current defaults. To deliberately start over or preview changed defaults, stop Play mode and choose **Tools > Arcweave > Reset Saved Progress**. Other preferences and project assets are preserved.
 - **JSON not loading**: verify the file is exported from Arcweave in Unity format
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
@@ -338,7 +338,16 @@ public class MyHandler : ArcweaveElementComponentHandler
 
 ### Save/Load
 
-Uses `PlayerPrefs`. Key prefix: `arcweave_save`. Saves current element ID and all variable values as JSON. Call `ArcweavePlayer.Save()` / `Load()`.
+Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JSON snapshot of the current element, variables, and exported board IDs. Call `ArcweavePlayer.Save()` / `Load()`, or `TryLoad()` when the caller needs to know whether navigation succeeded.
+
+- Startup restores compatible global, board, and component variables. NPC interactions still start at their configured dialogue entry point.
+- Explicit loading resumes the saved element. If that element was deleted, loading falls back to the project's starting element while keeping compatible variables.
+- A shared board ID identifies another export of the same project, so text edits, renames, and adding or removing some boards preserve progress. An export with no shared board IDs starts with defaults. Copies retaining the same exported IDs share this identity.
+- Importing a project restores its compatible saved progress instead of deleting the save. Saving a different project replaces the single slot.
+- Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data is migrated only when an element or variable ID still belongs to the current project. Unrelated saves, unreadable data, and unsupported versions are left untouched until an explicit save or reset.
+- Existing compatible values take precedence over newly edited defaults. **Tools > Arcweave > Reset Saved Progress** clears both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
+
+Persistence regression tests are available in **Window > General > Test Runner > EditMode**. They use isolated preference keys and do not reset the demo's saved progress.
 
 ---
 

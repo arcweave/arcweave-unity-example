@@ -1,0 +1,4 @@
+{
+    "name": "Arcweave.Persistence",
+    "references": ["ArcweavePlugin"]
+}
