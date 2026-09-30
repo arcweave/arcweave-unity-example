@@ -370,7 +370,7 @@ public class ArcweaveProgressTests
     {
         var element = new Element();
         typeof(Element).GetMethod("Set", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(element,
-            new object[] { elementId, Vector2Int.zero, new List<Connection>(), "Start", "Hello",
+            new object[] { elementId, Vector2Int.zero, new List<Connection>(), "Start", "<p>Hello</p>",
                 new List<Component>(), new List<Arcweave.Project.Attribute>(), null, "", Array.Empty<AudioAsset>() });
         var board = new Board(boardId, "Board", "board", new List<INode> { element });
         var project = new Project("Test project", element, new List<Board> { board },

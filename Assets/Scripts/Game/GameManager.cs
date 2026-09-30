@@ -356,35 +356,41 @@ public class GameManager : MonoBehaviour
         return activeDialogueTrigger;
     }
 
+    /// <summary>Uses the scene's end markers, or the default marker for standalone playback.</summary>
+    public static bool IsDialogueEnd(Element element)
+    {
+        return Instance != null
+            ? Instance.HasDialogueEndTag(element)
+            : HasDialogueEndTag(element, "dialogue_end", "dialogue_end");
+    }
+
     /// <summary>
     /// Checks if an Arcweave element has the dialogue end tag.
     /// Supports both component-based (new) and attribute-based (legacy) patterns.
     /// </summary>
     public bool HasDialogueEndTag(Element element)
     {
-        if (element == null) return false;
-        if (string.IsNullOrEmpty(dialogueEndTag)) return false;
-
-        // Component check — uses dialogueEndComponentName if set, otherwise dialogueEndTag
         string endComponentName = string.IsNullOrEmpty(dialogueEndComponentName) ? dialogueEndTag : dialogueEndComponentName;
-        if (element.HasComponent(endComponentName))
+        return HasDialogueEndTag(element, endComponentName, dialogueEndTag);
+    }
+
+    private static bool HasDialogueEndTag(Element element, string endComponentName, string endTag)
+    {
+        if (element == null) return false;
+        if (!string.IsNullOrEmpty(endComponentName) && element.Components != null && element.HasComponent(endComponentName))
         {
-            if (debugMode)
-                Debug.Log($"Element '{element.Title}' has dialogue_end component '{endComponentName}'");
             return true;
         }
 
         // Attribute check (legacy)
-        if (element.Attributes == null) return false;
+        if (string.IsNullOrEmpty(endTag) || element.Attributes == null) return false;
         foreach (var attribute in element.Attributes)
         {
             if (attribute == null || attribute.data == null) continue;
 
             string data = attribute.data.ToString();
-            if (data.Contains(dialogueEndTag))
+            if (data == endTag)
             {
-                if (debugMode)
-                    Debug.Log($"Element '{element.Title}' has dialogue end tag: {data}");
                 return true;
             }
         }

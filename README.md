@@ -87,7 +87,7 @@ Images and audio files are searched in the same order:
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
 - **NPC not talking**: check that `Specific Board Name` matches the Arcweave board name exactly (case-sensitive)
-- **Dialogue stuck**: the last element needs a `dialogue_end` tag or `DialogueEnd` component
+- **Dialogue endings**: an element ends the conversation when it has a `dialogue_end` component/tag, or when no outgoing connection resolves to another element. Its content stays visible until **Close** is clicked; no extra end element is needed. Put final variable changes in that element's content script, because connections after an explicit end marker are not followed.
 - **Object not activating**: check that `ArcweaveObjectActivation` is on an always-active object (e.g. the NPC) and points to the hidden object; variable name must match exactly (e.g. `sword_locked`); object must start **inactive**; variable must be boolean, default `true`
 - **Sword swing not unlocking**: `Component Name` in `SwordSwingHandler` must be `Attack` (exact match); the `Attack` component must be attached to the element in Arcweave; the Animator needs an `Attack` Trigger parameter
 - **Audio not playing**: verify `ArcweavePlayerAudio` is on the NPC GameObject; check that audio assets are uploaded and assigned to elements in Arcweave; audio files must be in `Assets/Resources/` (editor/build) or `[Build]/arcweave/resources/` (post-build); supported formats: mp3, wav, ogg, aiff
@@ -125,6 +125,9 @@ Central controller for Arcweave narratives. Manages project state, navigation be
 - `onElementEnter(Element)` -- new dialogue node reached
 - `onElementOptions(Options, Action<int>)` -- player choices available
 - `onWaitInputNext(Action)` -- single path forward, caller invokes to advance
+- `onWaitInputFinish(Action)` -- final element is displayed, caller invokes to save and finish
+
+The player runs each element's content script once on entry, before notifying UI/audio listeners or evaluating outgoing paths. The UI only renders the resulting content; refreshing it does not execute narrative code. Completion callbacks are valid only for the element that produced them, so repeated clicks and stale buttons cannot advance a finished conversation.
 
 ```csharp
 arcweavePlayer.onElementEnter += (element) => {
@@ -253,7 +256,7 @@ Singleton state machine: `Gameplay`, `Dialogue`, `Paused`. Controls cursor lock,
 | `dialogueEndComponentName` | Component name for dialogue end (optional, overrides tag) |
 | `dialogueAnimatorParam` | Animator bool parameter for dialogue state (default: `IsInDialogue`) |
 
-Detection priority: component name first, attribute tag fallback. Existing boards using tags continue to work.
+Detection priority: component name first, attribute tag fallback. An end tag's value must exactly match the configured tag. Standalone playback without a GameManager uses `dialogue_end` for both the component name and tag value. Explicit end markers take precedence over outgoing connections; unmarked elements also end when no valid outgoing path exists. Both cases show **Close** before returning to gameplay.
 
 #### PlayerController
 
@@ -348,6 +351,8 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 - Existing compatible values take precedence over newly edited defaults. **Tools > Arcweave > Reset Saved Progress** clears both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
 
 Persistence regression tests are available in **Window > General > Test Runner > EditMode**. They use isolated preference keys and do not reset the demo's saved progress.
+
+Dialogue regression tests are available under **PlayMode**. They cover visible terminal content, component/tag endings, conditional paths, normal choices, repeated conversations, script execution, and stale callbacks. Their save keys are also isolated from normal demo progress.
 
 ---
 

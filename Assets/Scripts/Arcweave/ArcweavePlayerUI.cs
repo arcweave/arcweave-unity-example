@@ -39,7 +39,6 @@ namespace Arcweave
 
         // Private variables
         private List<Button> tempButtons = new List<Button>();
-        private bool isDialogueEndElement = false;
         private float nextVariableUpdate = 0f;
         private bool isInitialized = false;
         private Element currentElement = null;
@@ -66,10 +65,11 @@ namespace Arcweave
         void OnEnable() 
         {
             Initialize();
+            SubscribeToEvents();
         }
         
         /// <summary>
-        /// Initialize the UI elements and event listeners
+        /// Initialize UI references and buttons once; event subscriptions follow OnEnable/OnDisable.
         /// </summary>
         private void Initialize()
         {
@@ -81,9 +81,6 @@ namespace Arcweave
             
             // Set up button listeners
             SetupButtons();
-
-            // Subscribe to Arcweave events
-            SubscribeToEvents();
 
             // Initialize variables display
             if (variablesText != null && showVariables)
@@ -128,6 +125,7 @@ namespace Arcweave
                 player.onElementEnter += OnElementEnter;
                 player.onElementOptions += OnElementOptions;
                 player.onWaitInputNext += OnWaitInputNext;
+                player.onWaitInputFinish += OnWaitInputFinish;
                 player.onProjectFinish += OnProjectFinish;
                 
                 if (debugMode)
@@ -156,6 +154,7 @@ namespace Arcweave
                 player.onElementEnter -= OnElementEnter;
                 player.onElementOptions -= OnElementOptions;
                 player.onWaitInputNext -= OnWaitInputNext;
+                player.onWaitInputFinish -= OnWaitInputFinish;
                 player.onProjectFinish -= OnProjectFinish;
                 
                 if (debugMode)
@@ -341,8 +340,6 @@ namespace Arcweave
             // Handle component cover image
             HandleComponentCoverImage(element);
             
-            // Check if current element has the dialogue_end tag
-            CheckForDialogueEndTag(element);
         }
         
         /// <summary>
@@ -354,9 +351,6 @@ namespace Arcweave
             
             if (element.HasContent())
             {
-                // Run content script before displaying
-                element.RunContentScript();
-                
                 // Set the content text
                 content.text = element.RuntimeContent;
                 
@@ -508,27 +502,6 @@ namespace Arcweave
         }
 
         /// <summary>
-        /// Checks if the current element has a dialogue end tag
-        /// </summary>
-        private void CheckForDialogueEndTag(Element element)
-        {
-            isDialogueEndElement = false;
-            
-            if (GameManager.Instance == null) return;
-            
-            DialogueTrigger activeTrigger = GameManager.Instance.GetActiveDialogueTrigger();
-            if (activeTrigger != null)
-            {
-                isDialogueEndElement = GameManager.Instance.HasDialogueEndTag(element);
-                
-                if (isDialogueEndElement && debugMode)
-                {
-                    Debug.Log($"Element '{element.Title}' has dialogue_end tag");
-                }
-            }
-        }
-
-        /// <summary>
         /// Handle displaying options to the player
         /// </summary>
         private void OnElementOptions(Options options, System.Action<int> callback) 
@@ -546,22 +519,7 @@ namespace Arcweave
                               options.Paths[i].label : 
                               "<i>[ No Label ]</i>";
                 
-                Button button;
-                if (isDialogueEndElement) 
-                {
-                    // For dialogue_end elements, create button that ends dialogue after selection
-                    button = MakeButton(text, () => {
-                        // First end dialogue immediately
-                        EndCurrentDialogue();
-                        // Then process the callback
-                        callback(index);
-                    });
-                } 
-                else 
-                {
-                    // Normal behavior for non-ending elements
-                    button = MakeButton(text, () => callback(index));
-                }
+                Button button = MakeButton(text, () => callback(index));
                 
                 // Position the button
                 PositionButton(button, i, options.Paths.Count);
@@ -584,48 +542,19 @@ namespace Arcweave
         }
         
         /// <summary>
-        /// End the current dialogue
-        /// </summary>
-        private void EndCurrentDialogue() 
-        {
-            var activeTrigger = GameManager.Instance?.GetActiveDialogueTrigger();
-            if (activeTrigger != null) 
-            {
-                activeTrigger.EndDialogue();
-            }
-        }
-
-        /// <summary>
         /// Handle waiting for input to proceed to next element
         /// </summary>
         private void OnWaitInputNext(System.Action next)
         {
             if (next == null) return;
 
-            // Create a "Continue" button
-            Button button;
-            if (isDialogueEndElement)
-            {
-                // For dialogue_end elements, end dialogue before proceeding
-                button = MakeButton("Continue", () => {
-                    EndCurrentDialogue();
-                    next();
-                });
-            }
-            else
-            {
-                button = MakeButton("Continue", next);
-            }
-            
-            // Position the button
-            if (button != null && buttonTemplate != null) 
-            {
-                var buttonRect = buttonTemplate.GetComponent<RectTransform>();
-                if (buttonRect != null) 
-                {
-                    button.transform.position = buttonTemplate.transform.position;
-                }
-            }
+            PositionButton(MakeButton("Continue", next), 0, 1);
+        }
+
+        private void OnWaitInputFinish(System.Action finish)
+        {
+            if (finish == null) return;
+            PositionButton(MakeButton("Close", finish), 0, 1);
         }
 
         /// <summary>
@@ -639,6 +568,7 @@ namespace Arcweave
             }
             
             ClearTempButtons();
+            currentElement = null;
         }
 
         /// <summary>
@@ -664,7 +594,12 @@ namespace Arcweave
             
             // Set button callback
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => callback());
+            button.onClick.AddListener(() =>
+            {
+                if (!button.interactable) return;
+                button.interactable = false;
+                callback();
+            });
             
             // Add to temp buttons list for cleanup
             tempButtons.Add(button);
@@ -712,6 +647,8 @@ namespace Arcweave
             {
                 if (button != null) 
                 {
+                    button.interactable = false;
+                    button.gameObject.SetActive(false);
                     Destroy(button.gameObject);
                 }
             }
@@ -726,7 +663,9 @@ namespace Arcweave
         {
             if (currentElement != null)
             {
-                OnElementEnter(currentElement);
+                UpdateContentText(currentElement);
+                HandleCoverImage(currentElement);
+                HandleComponentCoverImage(currentElement);
             }
         }
     }

@@ -21,6 +21,7 @@ namespace Arcweave
         public bool autoStart = true;
 
         private Element currentElement;
+        private int navigationVersion;
         private Project.Project initializedProject;
         private ArcweaveProgressStore progressStore = new ArcweaveProgressStore(SAVE_KEY);
 
@@ -34,6 +35,7 @@ namespace Arcweave
         public event OnElementEnter onElementEnter;
         public event OnElementOptions onElementOptions;
         public event OnWaitingInputNext onWaitInputNext;
+        public event OnWaitingInputNext onWaitInputFinish;
         public event OnProjectUpdated onProjectUpdated;
 
         void Awake()
@@ -66,6 +68,7 @@ namespace Arcweave
             aw.Project.Initialize();
             progressStore.TryRestore(aw.Project, out _);
             currentElement = null;
+            navigationVersion++;
             initializedProject = aw.Project;
             
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
@@ -140,10 +143,11 @@ namespace Arcweave
             if (element == null)
             {
                 Debug.LogError("Cannot navigate to null element");
-                if (onProjectFinish != null) onProjectFinish(aw.Project);
+                Finish();
                 return;
             }
             
+            int version = ++navigationVersion;
             currentElement = element;
             currentElement.Visits++;
             
@@ -152,29 +156,73 @@ namespace Arcweave
             {
                 Debug.LogWarning($"Element '{currentElement.Title}' has no content");
             }
+            else
+            {
+                currentElement.RunContentScript();
+            }
             
-            if (onElementEnter != null) onElementEnter(element);
+            NotifyCurrent(onElementEnter, version, handler => handler(element));
+
+            // A listener may have started another conversation while rendering this element.
+            if (version != navigationVersion) return;
+
+            if (GameManager.IsDialogueEnd(element))
+            {
+                WaitForFinish(version);
+                return;
+            }
             
             var currentState = currentElement.GetOptions();
             if (currentState.hasPaths) 
             {
                 if (currentState.hasOptions) 
                 {
-                    if (onElementOptions != null) 
-                    {
-                        onElementOptions(currentState, (index) => Next(currentState.Paths[index]));
-                    }
+                    NotifyCurrent(onElementOptions, version, handler =>
+                        handler(currentState, (index) =>
+                        {
+                            if (version != navigationVersion || index < 0 || index >= currentState.Paths.Count) return;
+                            Next(currentState.Paths[index]);
+                        }));
                     return;
                 }
 
-                if (onWaitInputNext != null) onWaitInputNext(() => Next(currentState.Paths[0]));
+                NotifyCurrent(onWaitInputNext, version, handler => handler(() =>
+                    {
+                        if (version == navigationVersion) Next(currentState.Paths[0]);
+                    }));
                 return;
             }
-            
+
+            WaitForFinish(version);
+        }
+
+        private void WaitForFinish(int version)
+        {
+            NotifyCurrent(onWaitInputFinish, version, handler => handler(() =>
+                {
+                    if (version == navigationVersion) Finish();
+                }));
+        }
+
+        private void Finish()
+        {
+            if (currentElement == null) return;
             Save();
-            
             currentElement = null;
-            if (onProjectFinish != null) onProjectFinish(aw.Project);
+            int version = ++navigationVersion;
+            var finishedProject = aw.Project;
+            NotifyCurrent(onProjectFinish, version, handler => handler(finishedProject));
+        }
+
+        // A listener can navigate synchronously. Do not send later listeners an obsolete presentation.
+        private void NotifyCurrent<T>(T listeners, int version, System.Action<T> notify) where T : System.Delegate
+        {
+            if (listeners == null) return;
+            foreach (T listener in listeners.GetInvocationList())
+            {
+                if (version != navigationVersion) return;
+                notify(listener);
+            }
         }
 
         /// <summary>
@@ -228,6 +276,7 @@ namespace Arcweave
         {
             progressStore.Clear();
             currentElement = null;
+            navigationVersion++;
             initializedProject = null;
 
             if (aw != null && aw.Project != null)
