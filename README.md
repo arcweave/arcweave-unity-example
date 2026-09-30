@@ -82,6 +82,7 @@ Images and audio files are searched in the same order:
 
 ### Troubleshooting
 
+- **"Variable with ID '...' not found" after updating the project**: old saved progress may reference variables that no longer exist. Stop Play mode, choose **Tools > Arcweave > Reset Saved Progress**, clear the Console, then press Play again. This deletes the demo's saved variables and dialogue position; other preferences and project assets are preserved. The command is only available outside Play mode.
 - **JSON not loading**: verify the file is exported from Arcweave in Unity format
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
@@ -107,7 +108,7 @@ Assets/Scripts/
 |                      ArcweaveSceneController,
 |                      SwordSwingHandler, ArcweaveHealthUI, ArcweaveObjectActivation
 ├── Game/           -- GameManager, PlayerController, ThirdPersonCamera, DialogueTrigger
-└── Editor/         -- ArcweaveBuildProcessor
+└── Editor/         -- ArcweaveBuildProcessor, ArcweaveSaveReset
 ```
 
 ---
