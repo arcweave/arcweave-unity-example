@@ -143,21 +143,24 @@ public class ArcweaveSceneController : MonoBehaviour
     private void UpdateTimeOfDay(Arcweave.Project.Component component)
     {
         if (sceneCamera == null) return;
-        
-        var timeAttr = FindAttributeByName(component, timeAttribute);
-        if (timeAttr == null)
+
+        var project = arcweavePlayer.aw.Project;
+        string timeValue = string.Empty;
+        Variable time = project.GetVariable("time", "environment");
+
+        if(time == null)
         {
-            Debug.LogWarning($"Attribute '{timeAttribute}' not found!");
-            return;
+            bool hasFoundTime = FindValueFromAttribute(component, timeAttribute, ref timeValue);
+            if (!hasFoundTime)
+            {
+                return;
+            }
         }
-        
-        string timeValue = timeAttr.data?.ToString();
-        if (string.IsNullOrEmpty(timeValue))
+        else
         {
-            Debug.LogWarning($"Time value is empty or invalid!");
-            return;
+            timeValue = time.Value?.ToString();
         }
-        
+
         // Set background based on time value
         if (string.Equals(timeValue, dayValue, System.StringComparison.OrdinalIgnoreCase))
         {
@@ -175,32 +178,54 @@ public class ArcweaveSceneController : MonoBehaviour
             Debug.LogWarning($"Unknown time value: {timeValue}");
         }
     }
-    
+
+    /// <summary>
+    /// Try to find a value from an attribute in the given component
+    /// return true if found, false otherwise
+    /// </summary>
+    private bool FindValueFromAttribute(Arcweave.Project.Component component, string attributeName, ref string value)
+    {
+        var attr = FindAttributeByName(component, attributeName);
+        if (attr == null)
+        {
+            Debug.LogWarning($"Attribute '{attributeName}' not found!");
+            return false;
+        }
+        value = attr.data?.ToString();
+        if (string.IsNullOrEmpty(value))
+        {
+            Debug.LogWarning($"Value for attribute '{attributeName}' is empty or invalid!");
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// Updates particle systems based on particle state attribute
     /// </summary>
     private void UpdateParticleSystems(Arcweave.Project.Component component)
     {
         if (particleSystems == null || particleSystems.Length == 0) return;
-        
-        var particleStateAttr = FindAttributeByName(component, particleAttribute);
-        if (particleStateAttr == null)
+
+        string weatherValue = string.Empty;
+        Variable weather = arcweavePlayer.aw.Project.GetVariable("weather", "environment");
+        if (weather != null)
         {
-            Debug.LogWarning($"Attribute '{particleAttribute}' not found!");
-            return;
+            weatherValue = weather.Value?.ToString();
         }
-        
-        string particleState = particleStateAttr.data?.ToString();
-        if (string.IsNullOrEmpty(particleState))
+        else
         {
-            Debug.LogWarning($"Particle state value is empty or invalid!");
-            return;
+            bool hasFoundValue = FindValueFromAttribute(component, particleAttribute, ref weatherValue);
+            if (!hasFoundValue)
+            {
+                return;
+            }
         }
-        
+ 
         // Check for specific weather values
         bool shouldPlay = false;
         
-        switch (particleState.ToLower())
+        switch (weatherValue.ToLower())
         {
             case "rain":
                 shouldPlay = true;
@@ -225,7 +250,7 @@ public class ArcweaveSceneController : MonoBehaviour
                 break;
                 
             default:
-                Debug.LogWarning($"Unknown particle state value: {particleState}");
+                Debug.LogWarning($"Unknown particle state value: {weatherValue}");
                 return;
         }
         
@@ -279,7 +304,6 @@ public class ArcweaveSceneController : MonoBehaviour
                 return attribute;
             }
         }
-        
         return null;
     }
     
