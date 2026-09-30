@@ -51,9 +51,14 @@ namespace Arcweave
         }
 
         /// <summary>
-        /// Initialize the project if not already initialized
+        /// Initialize once. Editor Play starts from imported defaults; builds resume saved progress.
         /// </summary>
         public void EnsureInitialized()
+        {
+            InitializeProject(restoreSavedProgress: !Application.isEditor);
+        }
+
+        private void InitializeProject(bool restoreSavedProgress)
         {
             if (IsInitialized) return;
             
@@ -64,7 +69,7 @@ namespace Arcweave
             }
             
             aw.Project.Initialize();
-            progressStore.TryRestore(aw.Project, out _);
+            if (restoreSavedProgress) progressStore.TryRestore(aw.Project, out _);
             currentElement = null;
             initializedProject = aw.Project;
             
@@ -75,7 +80,7 @@ namespace Arcweave
         public void SetProject(ArcweaveProjectAsset asset)
         {
             aw = asset;
-            EnsureInitialized();
+            InitializeProject(restoreSavedProgress: true);
         }
 
         /// <summary>
