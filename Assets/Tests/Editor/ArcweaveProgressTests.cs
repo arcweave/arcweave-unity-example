@@ -257,14 +257,15 @@ public class ArcweaveProgressTests
     }
 
     [Test]
-    public void PlayerInitializationRestoresOnceAndDetectsReplacementInsideTheSameAsset()
+    public void EditorInitializationUsesDefaultsOnceAndDetectsReplacementInsideTheSameAsset()
     {
         var first = CreateProject("board", "start", new Variable("value", "value", 1));
         first.GlobalVariables[0].Value = 7;
         store.Save(first, "start");
+        string savedProgress = PlayerPrefs.GetString(key + "_progress");
         var player = CreatePlayer(first, out var asset);
         Invoke(player, "EnsureInitialized");
-        Assert.That(first.GlobalVariables[0].Value, Is.EqualTo(7));
+        Assert.That(first.GlobalVariables[0].Value, Is.EqualTo(1));
         first.GlobalVariables[0].Value = 99;
         Invoke(player, "EnsureInitialized");
         Assert.That(first.GlobalVariables[0].Value, Is.EqualTo(99));
@@ -272,8 +273,61 @@ public class ArcweaveProgressTests
         var replacement = CreateProject("board", "start", new Variable("value", "value", 2));
         AssignProject(asset, replacement);
         Invoke(player, "EnsureInitialized");
-        Assert.That(replacement.GlobalVariables[0].Value, Is.EqualTo(7));
+        Assert.That(replacement.GlobalVariables[0].Value, Is.EqualTo(2));
         Assert.That(replacement.StartingElement.Project, Is.SameAs(replacement));
+        Assert.That(PlayerPrefs.GetString(key + "_progress"), Is.EqualTo(savedProgress));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void NewEditorSessionStartsFreshAndExplicitLoadStillRestoresProgress(bool legacy)
+    {
+        var project = CreateProject("board", "start", new Variable("gold", "gold", 50),
+            new Variable("sword", "sword_locked", true));
+        project.GlobalVariables[0].Value = 0;
+        project.GlobalVariables[1].Value = false;
+        if (legacy)
+        {
+            PlayerPrefs.SetString(key + "_variables", project.SaveVariables());
+            PlayerPrefs.SetString(key + "_currentElement", "start");
+        }
+        else store.Save(project, "start");
+        string dataKey = key + (legacy ? "_variables" : "_progress");
+        string savedProgress = PlayerPrefs.GetString(dataKey);
+
+        var firstSession = CreatePlayer(project, out _);
+        Invoke(firstSession, "EnsureInitialized");
+        Assert.That(project.GlobalVariables[0].Value, Is.EqualTo(50));
+        Assert.That(project.GlobalVariables[1].Value, Is.True);
+        project.GlobalVariables[0].Value = 20;
+        project.GlobalVariables[1].Value = false;
+
+        var nextSession = CreatePlayer(project, out _);
+        Invoke(nextSession, "EnsureInitialized");
+        Assert.That(project.GlobalVariables[0].Value, Is.EqualTo(50));
+        Assert.That(project.GlobalVariables[1].Value, Is.True);
+        Assert.That(PlayerPrefs.GetString(dataKey), Is.EqualTo(savedProgress));
+        Assert.That(project.StartingElement.Visits, Is.Zero);
+
+        Assert.That(Invoke(nextSession, "TryLoad"), Is.True);
+        Assert.That(project.GlobalVariables[0].Value, Is.Zero);
+        Assert.That(project.GlobalVariables[1].Value, Is.False);
+    }
+
+    [Test]
+    public void ResumeInitializationRestoresProgressOnlyOnce()
+    {
+        var project = CreateProject("board", "start", new Variable("gold", "gold", 50));
+        project.GlobalVariables[0].Value = 10;
+        store.Save(project, "start");
+        var player = CreatePlayer(project, out _);
+        var initialize = player.GetType().GetMethod("InitializeProject", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        initialize.Invoke(player, new object[] { true });
+        Assert.That(project.GlobalVariables[0].Value, Is.EqualTo(10));
+        project.GlobalVariables[0].Value = 25;
+        initialize.Invoke(player, new object[] { true });
+        Assert.That(project.GlobalVariables[0].Value, Is.EqualTo(25));
     }
 
     [Test]
