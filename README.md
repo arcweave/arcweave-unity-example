@@ -256,7 +256,7 @@ Singleton state machine: `Gameplay`, `Dialogue`, `Paused`. Controls cursor lock,
 | `dialogueEndComponentName` | Component name for dialogue end (optional, overrides tag) |
 | `dialogueAnimatorParam` | Animator bool parameter for dialogue state (default: `IsInDialogue`) |
 
-Detection priority: component name first, attribute tag fallback. An end tag's value must exactly match the configured tag. Standalone playback without a GameManager uses `dialogue_end` for both the component name and tag value. Explicit end markers take precedence over outgoing connections; unmarked elements also end when no valid outgoing path exists. Both cases show **Close** before returning to gameplay.
+Detection priority: component name first, attribute tag fallback. An end tag's value must exactly match the configured tag. Standalone playback without a GameManager uses `dialogue_end` for both the component name and tag value. Explicit end markers take precedence over outgoing connections; unmarked elements also end when no valid outgoing path exists. Both cases show **Close** before returning to gameplay. Resuming the importer only changes a paused game; a delayed import completion cannot dismiss an active dialogue.
 
 #### PlayerController
 
@@ -353,7 +353,7 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 
 Persistence regression tests are available in **Window > General > Test Runner > EditMode**. They use isolated preference keys and do not reset the demo's saved progress.
 
-Dialogue regression tests are available under **PlayMode**. They cover visible terminal content, component/tag endings, conditional paths, normal choices, repeated conversations, script execution, and stale callbacks. Their save keys are also isolated from normal demo progress.
+Dialogue regression tests are available under **PlayMode**. They cover visible terminal content, component/tag endings, conditional paths, normal choices, repeated conversations, script execution, and stale callbacks. Tests also load the actual Demo Scene to check final text after its fade animation, Close, and delayed import completion. Their save keys are isolated from normal demo progress.
 
 ---
 

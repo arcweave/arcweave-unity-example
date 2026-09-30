@@ -226,14 +226,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ResumeGame()
     {
+        // Import completion may arrive after a dialogue starts. Only resume an actual pause.
         if (currentState == GameState.Paused)
         {
             ReturnToPreviousState();
-        }
-        else
-        {
-            // If not paused, ensure we're in gameplay state
-            SetGameState(GameState.Gameplay);
         }
         
         // Hide importer UI when resuming
