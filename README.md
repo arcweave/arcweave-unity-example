@@ -348,8 +348,6 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 - Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data is migrated only when an element or variable ID still belongs to the current project. Unrelated saves, unreadable data, and unsupported versions are left untouched until an explicit save or reset.
 - When resuming or importing at runtime, compatible saved values take precedence over newly edited defaults. **Tools > Arcweave > Reset Saved Progress** deliberately deletes both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
 
-Persistence regression tests are available in **Window > General > Test Runner > EditMode**. They use isolated preference keys and do not reset the demo's saved progress.
-
 ---
 
 ## Compatibility

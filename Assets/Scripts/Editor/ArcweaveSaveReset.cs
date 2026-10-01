@@ -9,7 +9,7 @@ public static class ArcweaveSaveReset
     [MenuItem(MENU_PATH)]
     private static void ResetSavedProgress()
     {
-        new ArcweaveProgressStore(ArcweavePlayer.SAVE_KEY).Clear();
+        ArcweaveSave.Clear();
 
         Debug.Log("Arcweave saved progress cleared. Press Play to start with default values.");
     }

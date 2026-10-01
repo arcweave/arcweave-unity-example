@@ -22,9 +22,8 @@ namespace Arcweave
 
         private Element currentElement;
         private Project.Project initializedProject;
-        private ArcweaveProgressStore progressStore = new ArcweaveProgressStore(SAVE_KEY);
 
-        public bool HasSavedProgress => progressStore.HasSavedProgress;
+        public bool HasSavedProgress => ArcweaveSave.HasSavedProgress;
         private bool IsInitialized => aw != null && aw.Project != null &&
                                       ReferenceEquals(initializedProject, aw.Project);
 
@@ -69,7 +68,7 @@ namespace Arcweave
             }
             
             aw.Project.Initialize();
-            if (restoreSavedProgress) progressStore.TryRestore(aw.Project, out _);
+            if (restoreSavedProgress) ArcweaveSave.TryRestore(aw.Project, out _);
             currentElement = null;
             initializedProject = aw.Project;
             
@@ -193,7 +192,7 @@ namespace Arcweave
                 return;
             }
             
-            progressStore.Save(aw.Project, currentElement.Id);
+            ArcweaveSave.Save(aw.Project, currentElement.Id);
         }
 
         /// <summary>
@@ -209,7 +208,7 @@ namespace Arcweave
         {
             EnsureInitialized();
             if (!IsInitialized) return false;
-            if (!progressStore.TryRestore(aw.Project, out var id))
+            if (!ArcweaveSave.TryRestore(aw.Project, out var id))
             {
                 Debug.LogWarning("No compatible saved Arcweave progress is available for this project.");
                 return false;
@@ -231,7 +230,7 @@ namespace Arcweave
         /// </summary>
         public void ResetVariables() 
         {
-            progressStore.Clear();
+            ArcweaveSave.Clear();
             currentElement = null;
             initializedProject = null;
 
