@@ -1,6 +1,0 @@
-{
-    "name": "Arcweave.Persistence.Tests",
-    "references": ["Arcweave.Persistence", "ArcweavePlugin"],
-    "includePlatforms": ["Editor"],
-    "optionalUnityReferences": ["TestAssemblies"]
-}

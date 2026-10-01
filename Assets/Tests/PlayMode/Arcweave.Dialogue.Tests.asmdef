@@ -1,5 +1,0 @@
-{
-    "name": "Arcweave.Dialogue.Tests",
-    "references": ["ArcweavePlugin", "Arcweave.Persistence", "Unity.ugui"],
-    "optionalUnityReferences": ["TestAssemblies"]
-}

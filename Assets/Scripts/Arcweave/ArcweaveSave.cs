@@ -8,10 +8,12 @@ using UnityEngine;
 namespace Arcweave
 {
     /// <summary>Stores one demo save slot and restores only compatible project data.</summary>
-    public sealed class ArcweaveProgressStore
+    public static class ArcweaveSave
     {
         private const int CurrentVersion = 1;
-        private readonly string key;
+        private const string ProgressKey = ArcweavePlayer.SAVE_KEY + "_progress";
+        private const string LegacyVariablesKey = ArcweavePlayer.SAVE_KEY + "_variables";
+        private const string LegacyElementKey = ArcweavePlayer.SAVE_KEY + "_currentElement";
 
         [Serializable]
         private sealed class Snapshot
@@ -30,22 +32,17 @@ namespace Arcweave
             public string value;
         }
 
-        public ArcweaveProgressStore(string key)
-        {
-            this.key = key;
-        }
+        public static bool HasSavedProgress => PlayerPrefs.HasKey(ProgressKey) ||
+                                               PlayerPrefs.HasKey(LegacyVariablesKey);
 
-        public bool HasSavedProgress => PlayerPrefs.HasKey(key + "_progress") ||
-                                        PlayerPrefs.HasKey(key + "_variables");
-
-        public void Save(Project.Project project, string elementId)
+        public static void Save(Project.Project project, string elementId)
         {
             // Keep the plugin's variable format, with demo-owned metadata around it.
             var snapshot = JsonUtility.FromJson<Snapshot>(project.SaveVariables());
             snapshot.version = CurrentVersion;
             snapshot.boardIds = project.Boards.Select(board => board.Id).ToArray();
             snapshot.currentElement = elementId;
-            PlayerPrefs.SetString(key + "_progress", JsonUtility.ToJson(snapshot));
+            PlayerPrefs.SetString(ProgressKey, JsonUtility.ToJson(snapshot));
             PlayerPrefs.Save();
         }
 
@@ -53,11 +50,11 @@ namespace Arcweave
         /// Restores matching IDs and types. New or incompatible variables retain their defaults.
         /// A missing saved element does not prevent restoring the variables.
         /// </summary>
-        public bool TryRestore(Project.Project project, out string elementId)
+        public static bool TryRestore(Project.Project project, out string elementId)
         {
             elementId = null;
-            bool legacy = !PlayerPrefs.HasKey(key + "_progress");
-            string dataKey = key + (legacy ? "_variables" : "_progress");
+            bool legacy = !PlayerPrefs.HasKey(ProgressKey);
+            string dataKey = legacy ? LegacyVariablesKey : ProgressKey;
             if (!PlayerPrefs.HasKey(dataKey)) return false;
 
             Snapshot snapshot;
@@ -80,7 +77,7 @@ namespace Arcweave
             var variables = project.GetAllVariables().ToDictionary(variable => variable.Id);
             if (legacy)
             {
-                snapshot.currentElement = PlayerPrefs.GetString(key + "_currentElement", "");
+                snapshot.currentElement = PlayerPrefs.GetString(LegacyElementKey, "");
                 // Old saves have no project metadata. Require a shared exported ID before migration.
                 bool knownElement = FindElement(project, snapshot.currentElement) != null;
                 bool knownVariable = snapshot.variables.Any(value => value != null &&
@@ -117,8 +114,8 @@ namespace Arcweave
             Save(project, elementId);
             if (legacy)
             {
-                PlayerPrefs.DeleteKey(key + "_variables");
-                PlayerPrefs.DeleteKey(key + "_currentElement");
+                PlayerPrefs.DeleteKey(LegacyVariablesKey);
+                PlayerPrefs.DeleteKey(LegacyElementKey);
                 PlayerPrefs.Save();
             }
 
@@ -127,11 +124,11 @@ namespace Arcweave
             return true;
         }
 
-        public void Clear()
+        public static void Clear()
         {
-            PlayerPrefs.DeleteKey(key + "_progress");
-            PlayerPrefs.DeleteKey(key + "_variables");
-            PlayerPrefs.DeleteKey(key + "_currentElement");
+            PlayerPrefs.DeleteKey(ProgressKey);
+            PlayerPrefs.DeleteKey(LegacyVariablesKey);
+            PlayerPrefs.DeleteKey(LegacyElementKey);
             PlayerPrefs.Save();
         }
 
