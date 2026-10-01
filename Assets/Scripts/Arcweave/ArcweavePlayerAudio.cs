@@ -21,7 +21,6 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// </summary>
     public bool debugMode = false;
 
-    private bool isInitialized = false;
     /// <summary>
     /// List of AudioSources used to play audio assets for the current element.
     /// </summary>
@@ -81,14 +80,11 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// </summary>
     private void Initialize()
     {
-        if (isInitialized)
-            return;
-
-        isInitialized = SubscribeToEvents();
+        bool subscribed = SubscribeToEvents();
 
         if (debugMode)
         {
-            string status = isInitialized ? "success" : "failure";
+            string status = subscribed ? "success" : "failure";
             Debug.Log($"{this.GetType().Name} initialized with {status} ");
         }
     }
@@ -105,12 +101,12 @@ public class ArcweavePlayerAudio : MonoBehaviour
             UnsubscribeFromEvents();
 
             player.onElementEnter += OnElementEnter;
+            hasSubscribed = true;
 
             ArcweaveAudioManager audioManager = ArcweaveAudioManager.Instance;
             if (audioManager != null)
             {
                 audioManager.SubscribeToAudioClipStop(StopAudioClip);
-                hasSubscribed = true;
             }
 
             if (debugMode)
