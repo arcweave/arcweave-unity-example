@@ -437,11 +437,10 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     private void UpdateGameState()
     {
         // Update Arcweave player
-        var player = FindAnyObjectByType<ArcweavePlayer>();
+        var player = FindAnyObjectByType<ArcweavePlayer>(FindObjectsInactive.Include);
         if (player != null)
         {
-            player.ResetVariables();
-            player.aw = arcweaveAsset;
+            player.SetProject(arcweaveAsset);
         }
 
         // Update variable-based visuals

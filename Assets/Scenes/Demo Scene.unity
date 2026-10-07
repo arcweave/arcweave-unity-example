@@ -11426,7 +11426,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 004e358f9aa09e742946a7e8f6b91e61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arcweaveAsset: {fileID: 11400000, guid: c940cd6f0e2e0c447be8e20567cba17d, type: 2}
+  arcweaveAsset: {fileID: 11400000, guid: cb1dc755b4efaf04db8964e1390bb52b, type: 2}
   apiKey: 
   projectHash: 
   localJsonFilePath: arcweave/project.json

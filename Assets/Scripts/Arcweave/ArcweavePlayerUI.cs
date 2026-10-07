@@ -301,15 +301,14 @@ namespace Arcweave
         {
             if (player == null) return;
             
-            if (!PlayerPrefs.HasKey(ArcweavePlayer.SAVE_KEY + "_currentElement"))
+            if (!player.HasSavedProgress)
             {
                 Debug.LogWarning("No saved state found");
                 return;
             }
             
-            ClearTempButtons();
-            player.Load();
-            Debug.Log("Arcweave state loaded");
+            if (player.TryLoad())
+                Debug.Log("Arcweave state loaded");
         }
 
         /// <summary>

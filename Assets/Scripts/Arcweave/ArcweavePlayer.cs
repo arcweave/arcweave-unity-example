@@ -21,7 +21,11 @@ namespace Arcweave
         public bool autoStart = true;
 
         private Element currentElement;
-        private bool isInitialized = false;
+        private Project.Project initializedProject;
+
+        public bool HasSavedProgress => ArcweaveSave.HasSavedProgress;
+        private bool IsInitialized => aw != null && aw.Project != null &&
+                                      ReferenceEquals(initializedProject, aw.Project);
 
         //events that that UI (or otherwise) can subscribe to get notified and act accordingly.
         public event OnProjectStart onProjectStart;
@@ -46,11 +50,16 @@ namespace Arcweave
         }
 
         /// <summary>
-        /// Initialize the project if not already initialized
+        /// Initialize once. Editor Play starts from imported defaults; builds resume saved progress.
         /// </summary>
         public void EnsureInitialized()
         {
-            if (isInitialized) return;
+            InitializeProject(restoreSavedProgress: !Application.isEditor);
+        }
+
+        private void InitializeProject(bool restoreSavedProgress)
+        {
+            if (IsInitialized) return;
             
             if (aw == null || aw.Project == null)
             {
@@ -58,28 +67,19 @@ namespace Arcweave
                 return;
             }
             
-            // Initialize the project
             aw.Project.Initialize();
-            
-            // Load saved variables if they exist
-            if (PlayerPrefs.HasKey(SAVE_KEY + "_variables"))
-            {
-                var variables = PlayerPrefs.GetString(SAVE_KEY + "_variables");
-                Debug.Log($"Loading variables: {variables}");
-                aw.Project.LoadVariables(variables);
-                
-                // Verify variables were loaded correctly
-                var currentVars = aw.Project.SaveVariables();
-                Debug.Log($"Current variables after loading: {currentVars}");
-            }
-            else
-            {
-                Debug.Log("No saved variables found");
-            }
-            
-            isInitialized = true;
+            if (restoreSavedProgress) ArcweaveSave.TryRestore(aw.Project, out _);
+            currentElement = null;
+            initializedProject = aw.Project;
             
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
+        }
+
+        /// <summary>Installs an imported project and restores its compatible saved progress.</summary>
+        public void SetProject(ArcweaveProjectAsset asset)
+        {
+            aw = asset;
+            InitializeProject(restoreSavedProgress: true);
         }
 
         /// <summary>
@@ -95,6 +95,7 @@ namespace Arcweave
 
             // Ensure project is initialized
             EnsureInitialized();
+            if (!IsInitialized) return;
             
             Element startingElement = FindStartingElement();
             
@@ -191,12 +192,7 @@ namespace Arcweave
                 return;
             }
             
-            var id = currentElement.Id;
-            var variables = aw.Project.SaveVariables();
-            Debug.Log($"Saving variables: {variables}");
-            PlayerPrefs.SetString(SAVE_KEY+"_currentElement", id);
-            PlayerPrefs.SetString(SAVE_KEY+"_variables", variables);
-            PlayerPrefs.Save(); // Force immediate save
+            ArcweaveSave.Save(aw.Project, currentElement.Id);
         }
 
         /// <summary>
@@ -204,30 +200,29 @@ namespace Arcweave
         /// </summary>
         public void Load() 
         {
-            if (!PlayerPrefs.HasKey(SAVE_KEY+"_currentElement") || !PlayerPrefs.HasKey(SAVE_KEY+"_variables"))
+            TryLoad();
+        }
+
+        /// <summary>Loads progress, falling back to the start if the saved node was removed.</summary>
+        public bool TryLoad()
+        {
+            EnsureInitialized();
+            if (!IsInitialized) return false;
+            if (!ArcweaveSave.TryRestore(aw.Project, out var id))
             {
-                Debug.LogWarning("Cannot load - no saved state found");
-                return;
+                Debug.LogWarning("No compatible saved Arcweave progress is available for this project.");
+                return false;
             }
-            
-            var id = PlayerPrefs.GetString(SAVE_KEY+"_currentElement");
-            var variables = PlayerPrefs.GetString(SAVE_KEY+"_variables");
-            
-            if (string.IsNullOrEmpty(id))
-            {
-                Debug.LogError("Cannot load - invalid element ID");
-                return;
-            }
-            
-            var element = aw.Project.ElementWithId(id);
+
+            var element = string.IsNullOrEmpty(id) ? aw.Project.StartingElement : aw.Project.ElementWithId(id);
             if (element == null)
             {
-                Debug.LogError($"Cannot load - element with ID '{id}' not found");
-                return;
+                Debug.LogWarning("Cannot resume Arcweave progress - no starting element is available.");
+                return false;
             }
-            
-            aw.Project.LoadVariables(variables);
+
             Next(element);
+            return true;
         }
 
         /// <summary>
@@ -235,13 +230,13 @@ namespace Arcweave
         /// </summary>
         public void ResetVariables() 
         {
-            PlayerPrefs.DeleteKey(SAVE_KEY + "_variables");
-            PlayerPrefs.DeleteKey(SAVE_KEY + "_currentElement");
-            
+            ArcweaveSave.Clear();
+            currentElement = null;
+            initializedProject = null;
+
             if (aw != null && aw.Project != null)
             {
-                aw.Project.Initialize(); // This will reset all variables to their default values
-                isInitialized = true;
+                EnsureInitialized();
             }
         }
     }
