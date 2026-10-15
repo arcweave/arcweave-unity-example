@@ -35,6 +35,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
     private void Awake()
     {
+        localJsonFilePath = PlayerPrefs.GetString("ArcweaveLocalPath", localJsonFilePath);
         imageLoader = ArcweaveImageLoader.Instance;
     }
 
@@ -57,7 +58,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     private IEnumerator LoadLocalProjectWithDelay()
     {
         // Wait a moment to allow other components to initialize
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSecondsRealtime(0.5f);
 
         // An external export is optional; otherwise keep the project bundled in the scene.
         string path = Path.Combine(Path.GetDirectoryName(Application.dataPath), localJsonFilePath);
