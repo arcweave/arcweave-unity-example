@@ -103,7 +103,7 @@ Bundled Resources take precedence over external files with the same name. Extern
 
 ```
 Assets/Scripts/
-├── Arcweave/       -- ArcweavePlayer, ArcweavePlayerUI, ArcweaveImageLoader,
+├── Arcweave/       -- ArcweavePlayer, ArcweaveSave, ArcweavePlayerUI, ArcweaveImageLoader,
 |                      RuntimeArcweaveImporter, ArcweaveImporterUI,
 |                      ArcweaveAudioManager, ArcweaveAudioLoader, ArcweavePlayerAudio
 ├── Handlers/       -- ArcweaveAttributeHandler, ArcweaveElementComponentHandler,
@@ -285,7 +285,7 @@ Follows a target Transform with mouse-driven rotation. Disabled by `GameManager`
 
 #### ArcweaveBuildProcessor
 
-Editor-only post-build hook. Creates `arcweave/` and `arcweave/resources/` in the build output. Builds use the imported scene asset; the hook does not copy the repository's possibly older JSON. An optional `arcweave/project.json` placed beside the executable is imported at startup. Build into a new folder when testing bundled content: existing external JSON files are preserved.
+Editor-only post-build hook. Creates `arcweave/` and `arcweave/resources/` in the build output. Builds use the imported scene asset; the hook does not copy the repository's possibly older JSON. An optional `arcweave/project.json` placed beside the executable is imported at startup. If the user saved a different local path in the import panel, startup checks that path instead, even before the panel is opened. A missing external file leaves the bundled project active. Build into a new folder when testing bundled content: existing external JSON files are preserved.
 
 ---
 
