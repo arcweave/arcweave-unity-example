@@ -32,6 +32,7 @@ namespace Arcweave
         public event OnProjectStart onProjectStart;
         public event OnProjectFinish onProjectFinish;
         public event OnElementEnter onElementEnter;
+        public event OnElementEnter onElementRestored;
         public event OnElementOptions onElementOptions;
         public event OnWaitingInputNext onWaitInputNext;
         public event OnWaitingInputNext onWaitInputFinish;
@@ -148,7 +149,12 @@ namespace Arcweave
         /// <summary>
         /// Moves to the next/an element directly
         /// </summary>
-        public void Next(Element element) 
+        public void Next(Element element)
+        {
+            PresentElement(element, restoring: false);
+        }
+
+        private void PresentElement(Element element, bool restoring)
         {
             if (element == null)
             {
@@ -159,7 +165,7 @@ namespace Arcweave
             
             int version = ++navigationVersion;
             currentElement = element;
-            currentElement.Visits++;
+            if (!restoring) currentElement.Visits++;
             
             // Check if element has content
             if (!currentElement.HasContent())
@@ -169,9 +175,11 @@ namespace Arcweave
             else
             {
                 currentElement.RunContentScript();
+                // Render restored text, then discard script effects already included in the save.
+                if (restoring) ArcweaveSave.TryRestore(aw.Project, out _);
             }
             
-            NotifyCurrent(onElementEnter, version, handler => handler(element));
+            NotifyCurrent(restoring ? onElementRestored : onElementEnter, version, handler => handler(element));
 
             // A listener may have started another conversation while rendering this element.
             if (version != navigationVersion) return;
@@ -275,7 +283,10 @@ namespace Arcweave
                 return false;
             }
 
-            Next(element);
+            int version = ++navigationVersion;
+            NotifyCurrent(onProjectUpdated, version, handler => handler(aw.Project));
+            if (version == navigationVersion)
+                PresentElement(element, restoring: !string.IsNullOrEmpty(id));
             return true;
         }
 
@@ -285,8 +296,6 @@ namespace Arcweave
         public void ResetVariables() 
         {
             ArcweaveSave.Clear();
-            currentElement = null;
-            navigationVersion++;
             initializedProject = null;
 
             if (aw != null && aw.Project != null)

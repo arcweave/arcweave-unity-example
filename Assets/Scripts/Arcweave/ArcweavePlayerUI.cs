@@ -123,6 +123,7 @@ namespace Arcweave
                 UnsubscribeFromEvents();
                 
                 player.onElementEnter += OnElementEnter;
+                player.onElementRestored += OnElementEnter;
                 player.onElementOptions += OnElementOptions;
                 player.onWaitInputNext += OnWaitInputNext;
                 player.onWaitInputFinish += OnWaitInputFinish;
@@ -152,6 +153,7 @@ namespace Arcweave
             if (player != null)
             {
                 player.onElementEnter -= OnElementEnter;
+                player.onElementRestored -= OnElementEnter;
                 player.onElementOptions -= OnElementOptions;
                 player.onWaitInputNext -= OnWaitInputNext;
                 player.onWaitInputFinish -= OnWaitInputFinish;

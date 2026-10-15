@@ -50,6 +50,7 @@ public class ArcweaveHealthUI : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+            arcweavePlayer.onProjectUpdated += OnProjectFinish;
         }
 
         var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
@@ -88,6 +89,7 @@ public class ArcweaveHealthUI : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
+            arcweavePlayer.onProjectUpdated -= OnProjectFinish;
         }
 
         var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
@@ -137,6 +139,8 @@ public class ArcweaveHealthUI : MonoBehaviour
     {
         if (type == typeof(int))
             return (int)value;
+        else if (type == typeof(double))
+            return (float)(double)value;
         else if (type == typeof(float))
             return (float)value;
         else if (type == typeof(string) && float.TryParse(value.ToString(), out float parsedValue))
