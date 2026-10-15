@@ -43,12 +43,15 @@ namespace Arcweave
             snapshot.boardIds = project.Boards.Select(board => board.Id).ToArray();
             snapshot.currentElement = elementId;
             PlayerPrefs.SetString(ProgressKey, JsonUtility.ToJson(snapshot));
+            PlayerPrefs.DeleteKey(LegacyVariablesKey);
+            PlayerPrefs.DeleteKey(LegacyElementKey);
             PlayerPrefs.Save();
         }
 
         /// <summary>
         /// Restores matching IDs and types. New or incompatible variables retain their defaults.
         /// A missing saved element does not prevent restoring the variables.
+        /// Leaves the save unchanged so a later runtime import can restore additional data.
         /// </summary>
         public static bool TryRestore(Project.Project project, out string elementId)
         {
@@ -78,7 +81,7 @@ namespace Arcweave
             if (legacy)
             {
                 snapshot.currentElement = PlayerPrefs.GetString(LegacyElementKey, "");
-                // Old saves have no project metadata. Require a shared exported ID before migration.
+                // Old saves have no project metadata. Require a shared exported ID before restoring.
                 bool knownElement = FindElement(project, snapshot.currentElement) != null;
                 bool knownVariable = snapshot.variables.Any(value => value != null &&
                     !string.IsNullOrEmpty(value.id) && variables.ContainsKey(value.id));
@@ -110,14 +113,6 @@ namespace Arcweave
             }
 
             elementId = FindElement(project, snapshot.currentElement)?.Id;
-            // Normalize obsolete entries once, so subsequent starts do not retry them.
-            Save(project, elementId);
-            if (legacy)
-            {
-                PlayerPrefs.DeleteKey(LegacyVariablesKey);
-                PlayerPrefs.DeleteKey(LegacyElementKey);
-                PlayerPrefs.Save();
-            }
 
             if (skipped > 0)
                 Debug.Log($"Restored Arcweave progress; skipped {skipped} missing or incompatible variable(s).");
