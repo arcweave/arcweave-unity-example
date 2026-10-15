@@ -82,7 +82,7 @@ Images and audio files are searched in the same order:
 
 ### Troubleshooting
 
-- **"Variable with ID '...' not found" after updating the project**: old saved progress may reference variables that no longer exist. Stop Play mode, choose **Tools > Arcweave > Reset Saved Progress**, clear the Console, then press Play again. This deletes the demo's saved variables and dialogue position; other preferences and project assets are preserved. The command is only available outside Play mode.
+- **Variables when pressing Play**: each Editor Play session starts from the imported defaults without deleting saved progress. Manual web/local imports also use the imported defaults. Use **Load** to explicitly resume a save. Build startup automatically restores compatible saved values; removed variables are ignored and new or incompatible variables use their defaults.
 - **JSON not loading**: verify the file is exported from Arcweave in Unity format
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
@@ -101,7 +101,7 @@ Images and audio files are searched in the same order:
 
 ```
 Assets/Scripts/
-├── Arcweave/       -- ArcweavePlayer, ArcweavePlayerUI, ArcweaveImageLoader,
+├── Arcweave/       -- ArcweavePlayer, ArcweaveSave, ArcweavePlayerUI, ArcweaveImageLoader,
 |                      RuntimeArcweaveImporter, ArcweaveImporterUI,
 |                      ArcweaveAudioManager, ArcweaveAudioLoader, ArcweavePlayerAudio
 ├── Handlers/       -- ArcweaveAttributeHandler, ArcweaveElementComponentHandler,
@@ -271,7 +271,7 @@ Follows a target Transform with mouse-driven rotation. Disabled by `GameManager`
 
 #### ArcweaveBuildProcessor
 
-Editor-only post-build hook. Creates `arcweave/` and `arcweave/resources/` in the build output; copies `project.json` if present.
+Editor-only post-build hook. Creates `arcweave/` and `arcweave/resources/` in the build output. Builds use the imported scene asset; the hook does not copy the repository's possibly older JSON. An optional `arcweave/project.json` placed beside the executable is imported at startup. If the user saved a different local path in the import panel, startup checks that path instead, even before the panel is opened. A missing external file leaves the bundled project active. Build into a new folder when testing bundled content: existing external JSON files are preserved.
 
 ---
 
@@ -338,7 +338,16 @@ public class MyHandler : ArcweaveElementComponentHandler
 
 ### Save/Load
 
-Uses `PlayerPrefs`. Key prefix: `arcweave_save`. Saves current element ID and all variable values as JSON. Call `ArcweavePlayer.Save()` / `Load()`.
+Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JSON snapshot of the current element, variables, element visit counts, and exported board IDs. Call `ArcweavePlayer.Save()` / `Load()`, or `TryLoad()` when the caller needs to know whether navigation succeeded.
+
+- Each Editor Play session starts with imported default values. Initializing another NPC during the same session keeps current gameplay values. Existing saves are left intact; no manual reset is needed to test from the beginning.
+- Build startup restores compatible global, board, and component variables and element visits, including earlier decisions tested with `visits()`. NPC interactions still start at their configured dialogue entry point.
+- Explicit loading resumes the saved element. If that element was deleted, loading falls back to the project's starting element while keeping compatible variables.
+- A shared board ID identifies another export of the same project, so text edits, renames, and adding or removing some boards preserve progress. An export with no shared board IDs starts with defaults. Copies retaining the same exported IDs share this identity.
+- Manual web/local imports use the exported defaults and leave the saved slot intact. The automatic local import at build startup restores compatible progress. Saving a different project replaces the single slot.
+- Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data can be restored when an element or variable ID still belongs to the current project; migration happens on the next actual save. Unrelated saves, unreadable data, and unsupported versions are left untouched until an actual save or reset.
+- Saves written before visit tracking can recover only their saved current element's visit. Earlier visits were never stored and cannot be reconstructed reliably from inventory variables. Use a fresh save to validate complete narrative history.
+- When resuming with **Load** or starting a build, compatible saved values take precedence over newly edited defaults. Manual imports apply the new defaults immediately. **Tools > Arcweave > Reset Saved Progress** deliberately deletes both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
 
 ---
 

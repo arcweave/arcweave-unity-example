@@ -35,13 +35,14 @@ public class RuntimeArcweaveImporter : MonoBehaviour
 
     private void Awake()
     {
+        localJsonFilePath = PlayerPrefs.GetString("ArcweaveLocalPath", localJsonFilePath);
         imageLoader = ArcweaveImageLoader.Instance;
     }
 
     private void Start()
     {
 #if !UNITY_EDITOR
-        Debug.Log("RuntimeArcweaveImporter starting... Loading project from local path.");
+        Debug.Log("RuntimeArcweaveImporter: checking for an optional external project.");
 
         // Load directly from local JSON file
         StartCoroutine(LoadLocalProjectWithDelay());
@@ -57,17 +58,23 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     private IEnumerator LoadLocalProjectWithDelay()
     {
         // Wait a moment to allow other components to initialize
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSecondsRealtime(0.5f);
 
-        // Try to load the local JSON file
-        ImportFromLocalFile();
+        // An external export is optional; otherwise keep the project bundled in the scene.
+        string path = Path.Combine(Path.GetDirectoryName(Application.dataPath), localJsonFilePath);
+        if (File.Exists(path)) ImportLocalFile(restoreSavedProgress: true);
     }
 #endif
 
     /// <summary>
-    /// Imports a project from a local file
+    /// Imports a local project using its exported defaults. Saved progress remains available to Load.
     /// </summary>
     public void ImportFromLocalFile()
+    {
+        ImportLocalFile(restoreSavedProgress: false);
+    }
+
+    private void ImportLocalFile(bool restoreSavedProgress)
     {
         if (isImporting || arcweaveAsset == null)
         {
@@ -160,7 +167,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                         imageLoader.logDebugInfo = false;
                     }
                     
-                    UpdateGameState();
+                    UpdateGameState(restoreSavedProgress);
                     FinishImport(true);
                 }
                 else
@@ -168,6 +175,11 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                     Debug.LogError("Failed to import project - Project is null");
                     FinishImport(false);
                 }
+            }, _ =>
+            {
+                arcweaveAsset.projectJsonFile = originalJsonFile;
+                arcweaveAsset.importSource = originalSource;
+                FinishImport(false);
             });
         }
         catch (System.Exception e)
@@ -393,7 +405,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             arcweaveAsset.userAPIKey = apiKey;
             arcweaveAsset.projectHash = projectHash;
 
-            Debug.Log($"Starting web import with API Key: {apiKey.Substring(0, 3)}... and Project Hash: {projectHash}");
+            Debug.Log("Starting web import...");
 
             // Import from web using the correct method
             arcweaveAsset.ImportProject(() =>
@@ -401,7 +413,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 if (arcweaveAsset.Project != null)
                 {
                     Debug.Log("Project imported successfully from web");
-                    UpdateGameState();
+                    UpdateGameState(restoreSavedProgress: false);
                     FinishImport(true);
                 }
                 else
@@ -409,7 +421,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                     Debug.LogError("Failed to import project from web - Project is null");
                     FinishImport(false);
                 }
-            });
+            }, _ => FinishImport(false));
         }
         catch (System.Exception e)
         {
@@ -434,14 +446,13 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     /// <summary>
     /// Updates the game state based on the new project
     /// </summary>
-    private void UpdateGameState()
+    private void UpdateGameState(bool restoreSavedProgress)
     {
         // Update Arcweave player
-        var player = FindAnyObjectByType<ArcweavePlayer>();
+        var player = FindAnyObjectByType<ArcweavePlayer>(FindObjectsInactive.Include);
         if (player != null)
         {
-            player.ResetVariables();
-            player.aw = arcweaveAsset;
+            player.SetProject(arcweaveAsset, restoreSavedProgress);
         }
 
         // Update variable-based visuals
