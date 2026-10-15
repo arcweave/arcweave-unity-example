@@ -74,6 +74,10 @@ Images and audio files are searched in the same order:
 3. Enter your API key and project hash
 4. Click **Import Web**
 
+### Viewing variables
+
+Press **Esc** to open the pause menu. The Variables panel shows global, component and board variables beside the import controls. Use the mouse wheel, drag the text area, or drag the vertical scrollbar to reach longer lists. Text wraps and stays clipped inside the panel; the scrollbar hides when all content fits. Resume or press Esc again to return to gameplay. Values refresh while the panel is visible, including when game time is paused.
+
 ### Importing from Local File
 
 1. Place your JSON in `[Build Folder]/arcweave/project.json`
