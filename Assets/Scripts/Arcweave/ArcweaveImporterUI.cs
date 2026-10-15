@@ -219,7 +219,7 @@ public class ArcweaveImporterUI : MonoBehaviour
         }
         
         // Auto-close the panel after successful import
-        if (autoCloseOnSuccess)
+        if (autoCloseOnSuccess && isActiveAndEnabled)
         {
             autoCloseCoroutine = StartCoroutine(AutoCloseAfterDelay());
         }
@@ -264,7 +264,7 @@ public class ArcweaveImporterUI : MonoBehaviour
     /// </summary>
     private IEnumerator AutoCloseAfterDelay()
     {
-        yield return new WaitForSeconds(autoCloseDelay);
+        yield return new WaitForSecondsRealtime(autoCloseDelay);
         
         CloseImporterUI();
         
@@ -290,13 +290,13 @@ public class ArcweaveImporterUI : MonoBehaviour
         {
             messageText.text = message;
             messageText.gameObject.SetActive(true);
-            StartCoroutine(HideMessageAfterDelay());
+            if (isActiveAndEnabled) StartCoroutine(HideMessageAfterDelay());
         }
     }
 
     private IEnumerator HideMessageAfterDelay()
     {
-        yield return new WaitForSeconds(messageDisplayTime);
+        yield return new WaitForSecondsRealtime(messageDisplayTime);
         if (messageText != null)
         {
             messageText.gameObject.SetActive(false);

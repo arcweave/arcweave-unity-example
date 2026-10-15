@@ -21,7 +21,7 @@ You can preview the example project directly in your browser https://arcweave.it
 ## Quick Start
 
 1. Clone this repository
-2. Open the project in Unity Hub (Unity 6 or Unity 2022 LTS)
+2. Open the project in Unity Hub (validated with Unity 6000.0.39f1)
 3. The Arcweave Unity plugin is already included -- no extra setup needed
 4. Press Play to test the demo scene
 
@@ -63,7 +63,9 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 
 Images and audio files are searched in the same order:
 1. Unity's `Resources` folder (baked into the build)
-2. `[Build Folder]/arcweave/resources/` (drop files here to update post-build without rebuilding)
+2. `[Build Folder]/arcweave/resources/` (for files not already bundled under the same name)
+
+Bundled Resources take precedence over external files with the same name. External media can be added or replaced without rebuilding; restart the application after replacing cached audio. Image caches are cleared on import.
 
 ## For End Users
 
@@ -142,11 +144,14 @@ Subscribes to `ArcweavePlayer` events and renders dialogue text, images, choices
 
 | Inspector Field | Purpose |
 |----------------|---------|
-| `noContentText` | Text shown when an element has no content |
-| `emptyOptionText` | Text shown for options with no label |
-| `continueButtonText` | Label for the continue button |
-| `restartButtonText` | Label for the restart button |
-| `enableFade` | Enable fade animation for text entries |
+| `player` | ArcweavePlayer whose events drive the UI |
+| `content`, `cover`, `componentCover` | Dialogue text and image references |
+| `buttonTemplate` | Template used for choices, Continue and Close |
+| `saveButton`, `loadButton` | Optional save/load controls |
+| `variablesText` | Text for the variable debug list |
+| `showVariables`, `showAllVariables` | Enable the list and include component/board scopes |
+| `variableUpdateInterval` | Seconds between variable refreshes |
+| `animateTextEntries`, `crossfadeTime` | Enable entry animation and set its duration |
 
 #### DialogueTrigger
 
@@ -192,11 +197,13 @@ The demo bottle uses the visit binding configured in the scene: it represents th
 
 #### ArcweaveSceneController
 
-Reads the `SceneSettings` component on project load/import (in `Handlers/` folder). Attributes: `Time` (`"Day"` / `"Night"`) controls camera background; `ParticleState` (`"rain"` / `"clear"`) toggles particle systems.
+Reads a configured component on initialization, Load, import and dialogue completion (in `Handlers/`). The script defaults are `SceneSettings`, `Time` and `ParticleState`; the demo scene uses `Environment`, `time` and `weather`. Exposed attribute variables are read using component/attribute Custom IDs, with static attribute data as a fallback. Day/night controls the camera background; rain/clear controls the assigned particle systems.
 
 | Inspector Field | Purpose |
 |----------------|---------|
 | `dayValue` | Value for daytime (default: `Day`) |
+| `componentName` | Component containing the scene settings |
+| `timeAttribute`, `particleAttribute` | Attribute names for time and weather |
 | `nightValue` | Value for nighttime (default: `Night`) |
 | `nightColor` | Background color for night (default: black) |
 
@@ -212,7 +219,7 @@ Add to any NPC that has audio assets assigned to its Arcweave elements. Subscrib
 
 Multiple audio assets can be assigned to a single element in Arcweave; each is played independently with its own settings. Audio assets are configured entirely in Arcweave (upload via the **Assets** tab, assign to elements). No audio clips are referenced directly in Unity.
 
-For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity `Resources`). If that returns null, it falls back to `ArcweaveAudioLoader`, which loads the file asynchronously from `[Build]/arcweave/resources/` and caches it. This means audio files can be added or swapped post-build without rebuilding.
+For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity `Resources`). If that returns null, it falls back to `ArcweaveAudioLoader`, which loads the file asynchronously from `[Build]/arcweave/resources/` and caches it for the session. External files do not override a clip already bundled in Resources. Restart after replacing an external clip that was already loaded.
 
 | Inspector Field | Purpose |
 |----------------|---------|
@@ -246,7 +253,7 @@ Async import from web API or local JSON at runtime. Provides `onImportSuccess` /
 
 #### ArcweaveImporterUI
 
-UI panel for runtime import. Accessible via Esc key. Supports both web and local JSON import.
+UI panel for runtime import. Accessible via Esc key. Supports both web and local JSON import. Successful imports close an open panel after a real-time delay, including when game time is paused. A late response to an import does not restart UI coroutines on an already closed panel.
 
 #### GameManager
 
@@ -362,6 +369,6 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 
 ## Compatibility
 
-- **Unity 6** (6000.0.x) -- primary development version
-- **Unity 2022 LTS** (2022.3.x) -- tested and working. Unity Hub automatically resolves package versions.
+- **Unity 6** -- current save, dialogue, import and build checks use **6000.0.39f1**, including Windows 64-bit builds.
+- **Unity 2022 LTS** (2022.3.x) -- previously listed as supported; the current changes have not been revalidated on this version.
 - **Arcweave plugin**: included in the project. Standalone plugin: https://github.com/Arcweave/arcweave-unity-plugin
