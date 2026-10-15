@@ -48,6 +48,12 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 
 *Remember to connect your Arcweave Project Asset to the ArcweaveImporter and ArcweavePlayer GameObjects.*
 
+### Editor credentials and builds
+
+`ArcweaveBuildPrivacy` clears API keys and project hashes from build scene importers and input fields. Scene references to project assets are replaced with sanitized copies during build processing. The Editor's scene and project assets keep their credentials; the imported narrative remains available offline in the build.
+
+Users can enter their own credentials in the running application's import panel. Runtime preferences belong to that application and are not copied from the Editor. Those preferences are local `PlayerPrefs`, not an encrypted credential vault. Custom export pipelines, manually copied files, Addressables and separately built AssetBundles require their own credential handling; the hook covers scene references in the normal player build.
+
 ### How to Use This Template
 
 1. **Arcweave project**: create boards (one per NPC), add variables, write conditional branches, attach components to elements, export
