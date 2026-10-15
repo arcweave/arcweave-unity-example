@@ -41,7 +41,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     private void Start()
     {
 #if !UNITY_EDITOR
-        Debug.Log("RuntimeArcweaveImporter starting... Loading project from local path.");
+        Debug.Log("RuntimeArcweaveImporter: checking for an optional external project.");
 
         // Load directly from local JSON file
         StartCoroutine(LoadLocalProjectWithDelay());
@@ -174,6 +174,11 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                     Debug.LogError("Failed to import project - Project is null");
                     FinishImport(false);
                 }
+            }, _ =>
+            {
+                arcweaveAsset.projectJsonFile = originalJsonFile;
+                arcweaveAsset.importSource = originalSource;
+                FinishImport(false);
             });
         }
         catch (System.Exception e)
@@ -415,7 +420,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                     Debug.LogError("Failed to import project from web - Project is null");
                     FinishImport(false);
                 }
-            });
+            }, _ => FinishImport(false));
         }
         catch (System.Exception e)
         {

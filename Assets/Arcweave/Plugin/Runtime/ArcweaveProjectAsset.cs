@@ -42,23 +42,30 @@ namespace Arcweave
         ///<summary>Import project from json text file or web and get callback when finished.</summary>
         public void ImportProject(System.Action callback = null, System.Action<string> onError = null) {
             if ( importSource == ImportSource.FromJson && projectJsonFile != null ) {
-                MakeProject(projectJsonFile.text, callback);
+                MakeProject(projectJsonFile.text, callback, onError);
             }
             if ( importSource == ImportSource.FromWeb && !string.IsNullOrEmpty(userAPIKey) ) {
-                SendWebRequest((j) => MakeProject(j, callback), onError);
+                SendWebRequest((j) => MakeProject(j, callback, onError), onError);
             }
         }
 
         //...
-        async void MakeProject(string json, System.Action callback) {
-            Project.ProjectMaker maker = null;
-            await System.Threading.Tasks.Task.Run(() =>
+        async void MakeProject(string json, System.Action callback, System.Action<string> onError) {
+            try
             {
-                Debug.Log("Parsing Json...");
-                maker = new Project.ProjectMaker(json, this);
-                Debug.Log("Making Project...");
-                Project = maker.MakeProject();
-            });
+                var imported = await System.Threading.Tasks.Task.Run(() =>
+                {
+                    var maker = new Project.ProjectMaker(json, this);
+                    return maker.MakeProject();
+                });
+                Project = imported;
+            }
+            catch (Exception)
+            {
+                Debug.LogError("Could not parse the Arcweave project. The previous project was kept.");
+                onError?.Invoke("Invalid Arcweave project data.");
+                return;
+            }
 
             Debug.Log("Done");
             if ( callback != null ) { callback(); }
