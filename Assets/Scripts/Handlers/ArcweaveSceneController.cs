@@ -144,21 +144,9 @@ public class ArcweaveSceneController : MonoBehaviour
     {
         if (sceneCamera == null) return;
 
-        var project = arcweavePlayer.aw.Project;
-        string timeValue = string.Empty;
-        Variable time = project.GetVariable("time", "environment");
-
-        if(time == null)
+        if (!TryGetSceneValue(component, timeAttribute, out var timeValue))
         {
-            bool hasFoundTime = FindValueFromAttribute(component, timeAttribute, ref timeValue);
-            if (!hasFoundTime)
-            {
-                return;
-            }
-        }
-        else
-        {
-            timeValue = time.Value?.ToString();
+             return;
         }
 
         // Set background based on time value
@@ -179,24 +167,35 @@ public class ArcweaveSceneController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Try to find a value from an attribute in the given component
-    /// return true if found, false otherwise
-    /// </summary>
-    private bool FindValueFromAttribute(Arcweave.Project.Component component, string attributeName, ref string value)
+
+    private bool TryGetSceneValue(
+        Arcweave.Project.Component component,
+        string attributeName,
+        out string value)
     {
-        var attr = FindAttributeByName(component, attributeName);
-        if (attr == null)
+        value = null;
+        var attribute = FindAttributeByName(component, attributeName);
+        if (attribute == null)
         {
             Debug.LogWarning($"Attribute '{attributeName}' not found!");
             return false;
         }
-        value = attr.data?.ToString();
+
+        Variable variable = null;
+        if (!string.IsNullOrEmpty(component.CustomId) &&
+            !string.IsNullOrEmpty(attribute.CustomId))
+        {
+            variable = arcweavePlayer.aw.Project.GetVariable(
+                attribute.CustomId, component.CustomId);
+        }
+
+        value = (variable != null ? variable.Value : attribute.data)?.ToString();
         if (string.IsNullOrEmpty(value))
         {
             Debug.LogWarning($"Value for attribute '{attributeName}' is empty or invalid!");
             return false;
         }
+
         return true;
     }
 
@@ -207,21 +206,11 @@ public class ArcweaveSceneController : MonoBehaviour
     {
         if (particleSystems == null || particleSystems.Length == 0) return;
 
-        string weatherValue = string.Empty;
-        Variable weather = arcweavePlayer.aw.Project.GetVariable("weather", "environment");
-        if (weather != null)
+        if (!TryGetSceneValue(component, particleAttribute, out var weatherValue))
         {
-            weatherValue = weather.Value?.ToString();
+             return;
         }
-        else
-        {
-            bool hasFoundValue = FindValueFromAttribute(component, particleAttribute, ref weatherValue);
-            if (!hasFoundValue)
-            {
-                return;
-            }
-        }
- 
+
         // Check for specific weather values
         bool shouldPlay = false;
         
