@@ -69,11 +69,17 @@ namespace Arcweave
                 return;
             }
             
+            var interruptedProject = currentElement?.Project;
             aw.Project.Initialize();
             if (restoreSavedProgress) ArcweaveSave.TryRestore(aw.Project, out _);
             currentElement = null;
-            navigationVersion++;
+            int version = ++navigationVersion;
             initializedProject = aw.Project;
+
+            // End the old dialogue without saving its element against the replacement project.
+            if (interruptedProject != null)
+                NotifyCurrent(onProjectFinish, version, handler => handler(interruptedProject));
+            if (version != navigationVersion) return;
             
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
