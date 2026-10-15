@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 public class ArcweaveBuildProcessor
 {
-    private const string DEFAULT_JSON_SOURCE_PATH = "Assets/Arcweave/project.json";
     private const string DEFAULT_IMAGES_SOURCE_FOLDER = "Assets/Resources";
     private const string ARCWEAVE_FOLDER = "arcweave";
     private const string IMAGES_FOLDER = "resources";
@@ -52,18 +51,8 @@ public class ArcweaveBuildProcessor
             }
         }
         
-        // Create a copy of the JSON in the build directory (optional)
-        string sourceJsonPath = DEFAULT_JSON_SOURCE_PATH;
-        if (File.Exists(sourceJsonPath))
-        {
-            try {
-                string destJsonPath = Path.Combine(arcweaveFolderPath, JSON_FILENAME);
-                File.Copy(sourceJsonPath, destJsonPath, true);
-                Debug.Log($"Arcweave: Copied JSON file to build directory: {destJsonPath}");
-            } catch (System.Exception e) {
-                Debug.LogWarning($"Arcweave: Failed to copy JSON to build directory: {e.Message}");
-            }
-        }
+        // The scene already contains the imported project. Do not replace it with a stale export.
+        // Users can deliberately place a newer project.json in this folder after building.
         
         // Prompt user about the changes
         Debug.Log("Arcweave: StreamingAssets removed from the build process.");
