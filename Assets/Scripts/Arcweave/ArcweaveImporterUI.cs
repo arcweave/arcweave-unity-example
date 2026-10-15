@@ -71,6 +71,10 @@ public class ArcweaveImporterUI : MonoBehaviour
         string savedHash = PlayerPrefs.GetString(HASH_PREF, importer.projectHash);
         string savedLocalPath = PlayerPrefs.GetString(LOCAL_PATH_PREF, importer.localJsonFilePath);
 
+        importer.SetApiKey(savedApiKey);
+        importer.SetProjectHash(savedHash);
+        importer.SetLocalJsonFilePath(savedLocalPath);
+
         // Setup web import fields
         if (apiKeyInput != null)
         {
@@ -329,4 +333,4 @@ public class ArcweaveImporterUI : MonoBehaviour
             StopCoroutine(autoCloseCoroutine);
         }
     }
-} 
+}
