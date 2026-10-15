@@ -82,7 +82,7 @@ Images and audio files are searched in the same order:
 
 ### Troubleshooting
 
-- **Variables when pressing Play**: each Editor Play session starts from the imported defaults without deleting saved progress. Use **Load** to explicitly resume a save. Builds automatically restore compatible saved values. Runtime imports also restore compatible progress; removed variables are ignored and new or incompatible variables use their defaults.
+- **Variables when pressing Play**: each Editor Play session starts from the imported defaults without deleting saved progress. Manual web/local imports also use the imported defaults. Use **Load** to explicitly resume a save. Build startup automatically restores compatible saved values; removed variables are ignored and new or incompatible variables use their defaults.
 - **JSON not loading**: verify the file is exported from Arcweave in Unity format
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
@@ -347,9 +347,9 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 - Build startup restores compatible global, board, and component variables. NPC interactions still start at their configured dialogue entry point.
 - Explicit loading resumes the saved element. If that element was deleted, loading falls back to the project's starting element while keeping compatible variables.
 - A shared board ID identifies another export of the same project, so text edits, renames, and adding or removing some boards preserve progress. An export with no shared board IDs starts with defaults. Copies retaining the same exported IDs share this identity.
-- Importing a project restores its compatible saved progress instead of deleting the save. Saving a different project replaces the single slot.
-- Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data is migrated only when an element or variable ID still belongs to the current project. Unrelated saves, unreadable data, and unsupported versions are left untouched until an explicit save or reset.
-- When resuming or importing at runtime, compatible saved values take precedence over newly edited defaults. **Tools > Arcweave > Reset Saved Progress** deliberately deletes both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
+- Manual web/local imports use the exported defaults and leave the saved slot intact. The automatic local import at build startup restores compatible progress. Saving a different project replaces the single slot.
+- Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data can be restored when an element or variable ID still belongs to the current project; migration happens on the next actual save. Unrelated saves, unreadable data, and unsupported versions are left untouched until an actual save or reset.
+- When resuming with **Load** or starting a build, compatible saved values take precedence over newly edited defaults. Manual imports apply the new defaults immediately. **Tools > Arcweave > Reset Saved Progress** deliberately deletes both current and legacy progress; `ArcweavePlayer.ResetVariables()` also resets the running project.
 
 ---
 

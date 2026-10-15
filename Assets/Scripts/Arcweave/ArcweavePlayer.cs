@@ -84,11 +84,11 @@ namespace Arcweave
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
 
-        /// <summary>Installs an imported project and restores its compatible saved progress.</summary>
-        public void SetProject(ArcweaveProjectAsset asset)
+        /// <summary>Installs an imported project, optionally restoring compatible saved progress.</summary>
+        public void SetProject(ArcweaveProjectAsset asset, bool restoreSavedProgress = true)
         {
             aw = asset;
-            InitializeProject(restoreSavedProgress: true);
+            InitializeProject(restoreSavedProgress);
         }
 
         /// <summary>
