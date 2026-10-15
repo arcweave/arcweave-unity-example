@@ -329,4 +329,4 @@ public class ArcweaveImporterUI : MonoBehaviour
             StopCoroutine(autoCloseCoroutine);
         }
     }
-} 
+}
