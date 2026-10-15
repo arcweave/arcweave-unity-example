@@ -59,8 +59,9 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         // Wait a moment to allow other components to initialize
         yield return new WaitForSeconds(0.5f);
 
-        // Try to load the local JSON file
-        ImportLocalFile(restoreSavedProgress: true);
+        // An external export is optional; otherwise keep the project bundled in the scene.
+        string path = Path.Combine(Path.GetDirectoryName(Application.dataPath), localJsonFilePath);
+        if (File.Exists(path)) ImportLocalFile(restoreSavedProgress: true);
     }
 #endif
 

@@ -22,6 +22,14 @@ namespace Arcweave
             public string[] boardIds;
             public string currentElement;
             public VariableValue[] variables;
+            public ElementVisit[] visits;
+        }
+
+        [Serializable]
+        private sealed class ElementVisit
+        {
+            public string id;
+            public int count;
         }
 
         [Serializable]
@@ -42,6 +50,9 @@ namespace Arcweave
             snapshot.version = CurrentVersion;
             snapshot.boardIds = project.Boards.Select(board => board.Id).ToArray();
             snapshot.currentElement = elementId;
+            snapshot.visits = project.Boards.SelectMany(board => board.Nodes).OfType<Element>()
+                .Where(element => element.Visits > 0)
+                .Select(element => new ElementVisit { id = element.Id, count = element.Visits }).ToArray();
             PlayerPrefs.SetString(ProgressKey, JsonUtility.ToJson(snapshot));
             PlayerPrefs.DeleteKey(LegacyVariablesKey);
             PlayerPrefs.DeleteKey(LegacyElementKey);
@@ -113,6 +124,21 @@ namespace Arcweave
             }
 
             elementId = FindElement(project, snapshot.currentElement)?.Id;
+
+            project.ResetVisits();
+            if (snapshot.visits != null)
+            {
+                foreach (var visit in snapshot.visits)
+                {
+                    var element = visit == null ? null : FindElement(project, visit.id);
+                    if (element != null && visit.count > 0) element.Visits = visit.count;
+                }
+            }
+            else if (elementId != null)
+            {
+                // Older saves prove only that their current element was entered.
+                FindElement(project, elementId).Visits = 1;
+            }
 
             if (skipped > 0)
                 Debug.Log($"Restored Arcweave progress; skipped {skipped} missing or incompatible variable(s).");
