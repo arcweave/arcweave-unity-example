@@ -114,7 +114,7 @@ Assets/Scripts/
 |                      ArcweaveSceneController,
 |                      SwordSwingHandler, ArcweaveHealthUI, ArcweaveObjectActivation
 ├── Game/           -- GameManager, PlayerController, ThirdPersonCamera, DialogueTrigger
-└── Editor/         -- ArcweaveBuildProcessor, ArcweaveSaveReset
+└── Editor/         -- ArcweaveBuildProcessor, ArcweaveBuildPrivacy, ArcweaveSaveReset
 ```
 
 ---
