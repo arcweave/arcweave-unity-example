@@ -60,14 +60,19 @@ public class RuntimeArcweaveImporter : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         // Try to load the local JSON file
-        ImportFromLocalFile();
+        ImportLocalFile(restoreSavedProgress: true);
     }
 #endif
 
     /// <summary>
-    /// Imports a project from a local file
+    /// Imports a local project using its exported defaults. Saved progress remains available to Load.
     /// </summary>
     public void ImportFromLocalFile()
+    {
+        ImportLocalFile(restoreSavedProgress: false);
+    }
+
+    private void ImportLocalFile(bool restoreSavedProgress)
     {
         if (isImporting || arcweaveAsset == null)
         {
@@ -160,7 +165,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                         imageLoader.logDebugInfo = false;
                     }
                     
-                    UpdateGameState();
+                    UpdateGameState(restoreSavedProgress);
                     FinishImport(true);
                 }
                 else
@@ -393,7 +398,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
             arcweaveAsset.userAPIKey = apiKey;
             arcweaveAsset.projectHash = projectHash;
 
-            Debug.Log($"Starting web import with API Key: {apiKey.Substring(0, 3)}... and Project Hash: {projectHash}");
+            Debug.Log("Starting web import...");
 
             // Import from web using the correct method
             arcweaveAsset.ImportProject(() =>
@@ -401,7 +406,7 @@ public class RuntimeArcweaveImporter : MonoBehaviour
                 if (arcweaveAsset.Project != null)
                 {
                     Debug.Log("Project imported successfully from web");
-                    UpdateGameState();
+                    UpdateGameState(restoreSavedProgress: false);
                     FinishImport(true);
                 }
                 else
@@ -434,13 +439,13 @@ public class RuntimeArcweaveImporter : MonoBehaviour
     /// <summary>
     /// Updates the game state based on the new project
     /// </summary>
-    private void UpdateGameState()
+    private void UpdateGameState(bool restoreSavedProgress)
     {
         // Update Arcweave player
         var player = FindAnyObjectByType<ArcweavePlayer>(FindObjectsInactive.Include);
         if (player != null)
         {
-            player.SetProject(arcweaveAsset);
+            player.SetProject(arcweaveAsset, restoreSavedProgress);
         }
 
         // Update variable-based visuals
