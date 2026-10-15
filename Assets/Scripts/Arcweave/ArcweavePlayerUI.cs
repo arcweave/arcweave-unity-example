@@ -168,10 +168,11 @@ namespace Arcweave
         void Update()
         {
             // Update variables display periodically
-            if (showVariables && variablesText != null && Time.time >= nextVariableUpdate)
+            if (showVariables && variablesText != null && variablesText.isActiveAndEnabled &&
+                Time.unscaledTime >= nextVariableUpdate)
             {
                 UpdateVariablesDisplay();
-                nextVariableUpdate = Time.time + variableUpdateInterval;
+                nextVariableUpdate = Time.unscaledTime + variableUpdateInterval;
             }
         }
 
