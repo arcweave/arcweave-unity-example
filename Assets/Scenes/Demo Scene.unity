@@ -13919,6 +13919,7 @@ MonoBehaviour:
   arcweavePlayer: {fileID: 1168690309}
   targetObject: {fileID: 281592318}
   activationVariableName: have_potion
+  deactivateAfterVisitingElementId: d852a577-bd1f-44cf-8187-77a86f97baef
 --- !u!114 &1501610688
 MonoBehaviour:
   m_ObjectHideFlags: 0

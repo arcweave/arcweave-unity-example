@@ -2,7 +2,7 @@ using UnityEngine;
 using Arcweave;
 
 /// <summary>
-/// Activates or deactivates a GameObject based on an Arcweave boolean variable.
+/// Activates or deactivates a GameObject based on an Arcweave boolean variable or element visit.
 /// Uses inverted logic: variable true = object inactive, variable false = object active.
 /// Name variables for the locked/closed state (e.g. chest_locked, sword_locked).
 /// </summary>
@@ -16,8 +16,8 @@ public class ArcweaveObjectActivation : MonoBehaviour
     public GameObject targetObject;
     [Tooltip("Boolean variable name. true = object inactive, false = object active (inverted logic)")]
     public string activationVariableName = "activateObject";
-
-    private bool objectPermanentlyDeactivated = false;
+    [Tooltip("Optional element ID. When set, hide the object after this element was visited instead of using the variable.")]
+    public string deactivateAfterVisitingElementId;
 
     private void Start()
     {
@@ -33,6 +33,7 @@ public class ArcweaveObjectActivation : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+            arcweavePlayer.onProjectUpdated += OnProjectFinish;
         }
 
         var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
@@ -49,13 +50,11 @@ public class ArcweaveObjectActivation : MonoBehaviour
 
     private void OnImportSuccess()
     {
-        objectPermanentlyDeactivated = false;
         UpdateObjectActivation();
     }
 
     private void OnProjectFinish(Arcweave.Project.Project project)
     {
-        objectPermanentlyDeactivated = false;
         UpdateObjectActivation();
     }
 
@@ -64,6 +63,7 @@ public class ArcweaveObjectActivation : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
+            arcweavePlayer.onProjectUpdated -= OnProjectFinish;
         }
 
         var importer = FindAnyObjectByType<RuntimeArcweaveImporter>();
@@ -86,32 +86,21 @@ public class ArcweaveObjectActivation : MonoBehaviour
 
         try
         {
-            if (objectPermanentlyDeactivated)
+            bool shouldActivate;
+            if (!string.IsNullOrEmpty(deactivateAfterVisitingElementId))
             {
-                if (targetObject.activeSelf)
-                {
-                    targetObject.SetActive(false);
-                }
-                return;
+                var element = arcweavePlayer.aw.Project.ElementWithId(deactivateAfterVisitingElementId);
+                if (element == null) return;
+                shouldActivate = element.Visits == 0;
+            }
+            else
+            {
+                var activationVar = arcweavePlayer.aw.Project.GetVariable(activationVariableName);
+                if (activationVar == null || activationVar.Type != typeof(bool)) return;
+                shouldActivate = !(bool)activationVar.Value;
             }
 
-            var activationVar = arcweavePlayer.aw.Project.GetVariable(activationVariableName);
-            if (activationVar == null || activationVar.Type != typeof(bool)) return;
-
-            // Invert logic: if variable is true, deactivate object
-            bool shouldActivate = !(bool)activationVar.Value;
-
-            if (targetObject.activeSelf && !shouldActivate)
-            {
-                objectPermanentlyDeactivated = true;
-                targetObject.SetActive(false);
-                Debug.Log($"Object '{targetObject.name}' permanently deactivated based on variable '{activationVariableName}'");
-            }
-            else if (!targetObject.activeSelf && shouldActivate && !objectPermanentlyDeactivated)
-            {
-                targetObject.SetActive(true);
-                Debug.Log($"Object '{targetObject.name}' activated based on variable '{activationVariableName}'");
-            }
+            if (targetObject.activeSelf != shouldActivate) targetObject.SetActive(shouldActivate);
         }
         catch (System.Exception e)
         {
@@ -120,10 +109,10 @@ public class ArcweaveObjectActivation : MonoBehaviour
     }
 
     /// <summary>
-    /// Reset the permanent deactivation flag (called on reimport/restart)
+    /// Refresh from the current project state (called on reimport/restart).
     /// </summary>
     public void ResetObjectActivation()
     {
-        objectPermanentlyDeactivated = false;
+        UpdateObjectActivation();
     }
 }

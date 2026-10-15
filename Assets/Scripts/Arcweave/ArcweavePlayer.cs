@@ -21,6 +21,7 @@ namespace Arcweave
         public bool autoStart = true;
 
         private Element currentElement;
+        private int navigationVersion;
         private Project.Project initializedProject;
 
         public bool HasSavedProgress => ArcweaveSave.HasSavedProgress;
@@ -31,8 +32,10 @@ namespace Arcweave
         public event OnProjectStart onProjectStart;
         public event OnProjectFinish onProjectFinish;
         public event OnElementEnter onElementEnter;
+        public event OnElementEnter onElementRestored;
         public event OnElementOptions onElementOptions;
         public event OnWaitingInputNext onWaitInputNext;
+        public event OnWaitingInputNext onWaitInputFinish;
         public event OnProjectUpdated onProjectUpdated;
 
         void Awake()
@@ -67,10 +70,17 @@ namespace Arcweave
                 return;
             }
             
+            var interruptedProject = currentElement?.Project;
             aw.Project.Initialize();
             if (restoreSavedProgress) ArcweaveSave.TryRestore(aw.Project, out _);
             currentElement = null;
+            int version = ++navigationVersion;
             initializedProject = aw.Project;
+
+            // End the old dialogue without saving its element against the replacement project.
+            if (interruptedProject != null)
+                NotifyCurrent(onProjectFinish, version, handler => handler(interruptedProject));
+            if (version != navigationVersion) return;
             
             if (onProjectUpdated != null) onProjectUpdated(aw.Project);
         }
@@ -139,46 +149,98 @@ namespace Arcweave
         /// <summary>
         /// Moves to the next/an element directly
         /// </summary>
-        public void Next(Element element) 
+        public void Next(Element element)
+        {
+            PresentElement(element, restoring: false);
+        }
+
+        private void PresentElement(Element element, bool restoring)
         {
             if (element == null)
             {
                 Debug.LogError("Cannot navigate to null element");
-                if (onProjectFinish != null) onProjectFinish(aw.Project);
+                Finish();
                 return;
             }
             
+            int version = ++navigationVersion;
             currentElement = element;
-            currentElement.Visits++;
+            if (!restoring) currentElement.Visits++;
             
             // Check if element has content
             if (!currentElement.HasContent())
             {
                 Debug.LogWarning($"Element '{currentElement.Title}' has no content");
             }
+            else
+            {
+                currentElement.RunContentScript();
+                // Render restored text, then discard script effects already included in the save.
+                if (restoring) ArcweaveSave.TryRestore(aw.Project, out _);
+            }
             
-            if (onElementEnter != null) onElementEnter(element);
+            NotifyCurrent(restoring ? onElementRestored : onElementEnter, version, handler => handler(element));
+
+            // A listener may have started another conversation while rendering this element.
+            if (version != navigationVersion) return;
+
+            if (GameManager.IsDialogueEnd(element))
+            {
+                WaitForFinish(version);
+                return;
+            }
             
             var currentState = currentElement.GetOptions();
             if (currentState.hasPaths) 
             {
                 if (currentState.hasOptions) 
                 {
-                    if (onElementOptions != null) 
-                    {
-                        onElementOptions(currentState, (index) => Next(currentState.Paths[index]));
-                    }
+                    NotifyCurrent(onElementOptions, version, handler =>
+                        handler(currentState, (index) =>
+                        {
+                            if (version != navigationVersion || index < 0 || index >= currentState.Paths.Count) return;
+                            Next(currentState.Paths[index]);
+                        }));
                     return;
                 }
 
-                if (onWaitInputNext != null) onWaitInputNext(() => Next(currentState.Paths[0]));
+                NotifyCurrent(onWaitInputNext, version, handler => handler(() =>
+                    {
+                        if (version == navigationVersion) Next(currentState.Paths[0]);
+                    }));
                 return;
             }
-            
+
+            WaitForFinish(version);
+        }
+
+        private void WaitForFinish(int version)
+        {
+            NotifyCurrent(onWaitInputFinish, version, handler => handler(() =>
+                {
+                    if (version == navigationVersion) Finish();
+                }));
+        }
+
+        private void Finish()
+        {
+            if (currentElement == null) return;
             Save();
-            
             currentElement = null;
-            if (onProjectFinish != null) onProjectFinish(aw.Project);
+            int version = ++navigationVersion;
+            var finishedProject = aw.Project;
+            NotifyCurrent(onProjectFinish, version, handler => handler(finishedProject));
+        }
+
+        // A listener can navigate synchronously. Do not send later listeners an obsolete presentation.
+        private void NotifyCurrent<T>(T listeners, int version, System.Action<T> notify) where T : System.Delegate
+        {
+            if (listeners == null) return;
+            foreach (T listener in listeners.GetInvocationList())
+            {
+                if (version != navigationVersion) return;
+                notify(listener);
+            }
         }
 
         /// <summary>
@@ -221,7 +283,10 @@ namespace Arcweave
                 return false;
             }
 
-            Next(element);
+            int version = ++navigationVersion;
+            NotifyCurrent(onProjectUpdated, version, handler => handler(aw.Project));
+            if (version == navigationVersion)
+                PresentElement(element, restoring: !string.IsNullOrEmpty(id));
             return true;
         }
 
@@ -231,7 +296,6 @@ namespace Arcweave
         public void ResetVariables() 
         {
             ArcweaveSave.Clear();
-            currentElement = null;
             initializedProject = null;
 
             if (aw != null && aw.Project != null)

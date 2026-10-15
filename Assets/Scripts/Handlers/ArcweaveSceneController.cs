@@ -64,6 +64,7 @@ public class ArcweaveSceneController : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+            arcweavePlayer.onProjectUpdated += OnProjectFinish;
         }
         
         // Initialize scene
@@ -254,7 +255,7 @@ public class ArcweaveSceneController : MonoBehaviour
             }
             else
             {
-                if (ps.isPlaying) ps.Stop();
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
         }
         
@@ -304,6 +305,7 @@ public class ArcweaveSceneController : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
+            arcweavePlayer.onProjectUpdated -= OnProjectFinish;
         }
         
         if (arcweaveImporter != null)
@@ -311,4 +313,4 @@ public class ArcweaveSceneController : MonoBehaviour
             arcweaveImporter.onImportSuccess.RemoveListener(OnImportSuccess);
         }
     }
-} 
+}

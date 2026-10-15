@@ -21,7 +21,7 @@ You can preview the example project directly in your browser https://arcweave.it
 ## Quick Start
 
 1. Clone this repository
-2. Open the project in Unity Hub (Unity 6 or Unity 2022 LTS)
+2. Open the project in Unity Hub (validated with Unity 6000.0.39f1)
 3. The Arcweave Unity plugin is already included -- no extra setup needed
 4. Press Play to test the demo scene
 
@@ -63,7 +63,9 @@ To learn more about the plugin: https://github.com/Arcweave/arcweave-unity-plugi
 
 Images and audio files are searched in the same order:
 1. Unity's `Resources` folder (baked into the build)
-2. `[Build Folder]/arcweave/resources/` (drop files here to update post-build without rebuilding)
+2. `[Build Folder]/arcweave/resources/` (for files not already bundled under the same name)
+
+Bundled Resources take precedence over external files with the same name. External media can be added or replaced without rebuilding; restart the application after replacing cached audio. Image caches are cleared on import.
 
 ## For End Users
 
@@ -87,9 +89,9 @@ Images and audio files are searched in the same order:
 - **Images missing**: filenames must match those in the Arcweave project
 - **API key / hash invalid**: check your Arcweave account settings and project URL
 - **NPC not talking**: check that `Specific Board Name` matches the Arcweave board name exactly (case-sensitive)
-- **Dialogue stuck**: the last element needs a `dialogue_end` tag or `DialogueEnd` component
-- **Object not activating**: check that `ArcweaveObjectActivation` is on an always-active object (e.g. the NPC) and points to the hidden object; variable name must match exactly (e.g. `sword_locked`); object must start **inactive**; variable must be boolean, default `true`
-- **Sword swing not unlocking**: `Component Name` in `SwordSwingHandler` must be `Attack` (exact match); the `Attack` component must be attached to the element in Arcweave; the Animator needs an `Attack` Trigger parameter
+- **Dialogue endings**: an element ends the conversation when it has a `dialogue_end` component/tag, or when no outgoing connection resolves to another element. Its content stays visible until **Close** is clicked; no extra end element is needed. Put final variable changes in that element's content script, because connections after an explicit end marker are not followed.
+- **Object not activating**: keep `ArcweaveObjectActivation` on an always-active controller and assign its target. Use either a matching boolean variable name or an element ID in `Deactivate After Visiting Element Id`. The binding sets the target's active state; no particular initial active state is required.
+- **Sword swing not unlocking**: `Component Name` in `SwordSwingHandler` must exactly match a component attached to an Arcweave element (the demo uses `attack`). Configure the player's Animator trigger separately.
 - **Audio not playing**: verify `ArcweavePlayerAudio` is on the NPC GameObject; check that audio assets are uploaded and assigned to elements in Arcweave; audio files must be in `Assets/Resources/` (editor/build) or `[Build]/arcweave/resources/` (post-build); supported formats: mp3, wav, ogg, aiff
 - **Audio not stopping (`Stop` mode)**: `ArcweaveAudioManager` must be present in the scene; add it to a persistent GameObject (e.g. `GameManager`)
 
@@ -123,8 +125,12 @@ Central controller for Arcweave narratives. Manages project state, navigation be
 - `onProjectStart(Project)` / `onProjectFinish(Project)` -- project lifecycle
 - `onProjectUpdated(Project)` -- fires after project is initialized or reloaded
 - `onElementEnter(Element)` -- new dialogue node reached
+- `onElementRestored(Element)` -- saved node presented again without firing entry effects
 - `onElementOptions(Options, Action<int>)` -- player choices available
 - `onWaitInputNext(Action)` -- single path forward, caller invokes to advance
+- `onWaitInputFinish(Action)` -- final element is displayed, caller invokes to save and finish
+
+The player runs each element's content script on entry, before notifying UI/audio listeners or evaluating outgoing paths. On Load, it evaluates the saved element to render its text, then restores the snapshot's variables and visits before notifying `onElementRestored`; audio and other entry effects are not replayed. The UI only renders the resulting content. Completion callbacks are valid only for the element that produced them, so repeated clicks and stale buttons cannot advance a finished conversation.
 
 ```csharp
 arcweavePlayer.onElementEnter += (element) => {
@@ -138,11 +144,14 @@ Subscribes to `ArcweavePlayer` events and renders dialogue text, images, choices
 
 | Inspector Field | Purpose |
 |----------------|---------|
-| `noContentText` | Text shown when an element has no content |
-| `emptyOptionText` | Text shown for options with no label |
-| `continueButtonText` | Label for the continue button |
-| `restartButtonText` | Label for the restart button |
-| `enableFade` | Enable fade animation for text entries |
+| `player` | ArcweavePlayer whose events drive the UI |
+| `content`, `cover`, `componentCover` | Dialogue text and image references |
+| `buttonTemplate` | Template used for choices, Continue and Close |
+| `saveButton`, `loadButton` | Optional save/load controls |
+| `variablesText` | Text for the variable debug list |
+| `showVariables`, `showAllVariables` | Enable the list and include component/board scopes |
+| `variableUpdateInterval` | Seconds between variable refreshes |
+| `animateTextEntries`, `crossfadeTime` | Enable entry animation and set its duration |
 
 #### DialogueTrigger
 
@@ -174,22 +183,27 @@ Connects an Arcweave health variable to a Unity Slider, text, and animator. Also
 
 #### ArcweaveObjectActivation
 
-Toggles a GameObject based on an Arcweave boolean variable. Uses inverted logic: `true` = object inactive, `false` = object activates.
+Toggles a GameObject from the current Arcweave state. With a boolean binding, `true` = inactive and `false` = active. With an optional element ID, the object is active until that element has been visited. Load, reset and imports can change the state in either direction; there is no separate permanent-deactivation flag.
 
 | Inspector Field | Purpose |
 |----------------|---------|
 | `targetObject` | GameObject to activate/deactivate |
 | `activationVariableName` | Boolean variable name (e.g. `sword_locked`) |
+| `deactivateAfterVisitingElementId` | Optional exported element ID; takes precedence over the variable and hides the target when its visit count is positive |
 
 **Object Activation naming convention:** name variables for the locked/closed state (e.g. `sword_locked`). Default `true` = hidden. When flipped to `false`, the object activates.
 
+The demo bottle uses the visit binding configured in the scene: it represents the Healer's remaining supply, so consuming the player's potion must not make it reappear. The script has no character names, inventory names or story IDs built into it. Configure another variable or element ID to reuse it. If a binding is missing from an imported project, the handler leaves the target unchanged; update the Inspector binding for that project.
+
 #### ArcweaveSceneController
 
-Reads the `SceneSettings` component on project load/import (in `Handlers/` folder). Attributes: `Time` (`"Day"` / `"Night"`) controls camera background; `ParticleState` (`"rain"` / `"clear"`) toggles particle systems.
+Reads a configured component on initialization, Load, import and dialogue completion (in `Handlers/`). The script defaults are `SceneSettings`, `Time` and `ParticleState`; the demo scene uses `Environment`, `time` and `weather`. Exposed attribute variables are read using component/attribute Custom IDs, with static attribute data as a fallback. Day/night controls the camera background; rain/clear controls the assigned particle systems.
 
 | Inspector Field | Purpose |
 |----------------|---------|
 | `dayValue` | Value for daytime (default: `Day`) |
+| `componentName` | Component containing the scene settings |
+| `timeAttribute`, `particleAttribute` | Attribute names for time and weather |
 | `nightValue` | Value for nighttime (default: `Night`) |
 | `nightColor` | Background color for night (default: black) |
 
@@ -205,7 +219,7 @@ Add to any NPC that has audio assets assigned to its Arcweave elements. Subscrib
 
 Multiple audio assets can be assigned to a single element in Arcweave; each is played independently with its own settings. Audio assets are configured entirely in Arcweave (upload via the **Assets** tab, assign to elements). No audio clips are referenced directly in Unity.
 
-For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity `Resources`). If that returns null, it falls back to `ArcweaveAudioLoader`, which loads the file asynchronously from `[Build]/arcweave/resources/` and caches it. This means audio files can be added or swapped post-build without rebuilding.
+For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity `Resources`). If that returns null, it falls back to `ArcweaveAudioLoader`, which loads the file asynchronously from `[Build]/arcweave/resources/` and caches it for the session. External files do not override a clip already bundled in Resources. Restart after replacing an external clip that was already loaded.
 
 | Inspector Field | Purpose |
 |----------------|---------|
@@ -218,10 +232,10 @@ For each asset, the script first calls `TryGetAudioClip()` (resolves from Unity 
 | Mode | Behavior |
 |------|----------|
 | `Once` | Plays the clip once, then stops |
-| `Loop` | Loops the clip until explicitly stopped |
+| `Loop` | Loops across elements in the current conversation until Stop or dialogue completion |
 | `Stop` | Stops the named clip on all `ArcweavePlayerAudio` instances (requires `ArcweaveAudioManager` in scene) |
 
-Each audio asset also supports `volume` (0–1) and `delay` (seconds before playback starts), both set in Arcweave. Delayed clips use `AudioSource.PlayDelayed()`. Non-looping `AudioSource` components are destroyed when the element changes; looping sources persist until explicitly stopped via `Stop` mode.
+Each audio asset also supports `volume` (0–1) and `delay` (seconds before playback starts), both set in Arcweave. Delayed clips use `AudioSource.PlayDelayed()`. Element changes cancel pending loads and non-looping sources; loops remain tracked for Stop. Closing the dialogue, loading/resetting/replacing the project, or disabling the handler stops all its sources and pending loads. Load presents the saved node without replaying its audio.
 
 #### ArcweaveImageLoader
 
@@ -235,11 +249,11 @@ Used automatically by `ArcweavePlayerAudio` as a fallback when `TryGetAudioClip(
 
 #### RuntimeArcweaveImporter
 
-Async import from web API or local JSON at runtime. Provides `onImportSuccess` / `onImportFailure` events. Saves credentials between sessions.
+Async import from web API or local JSON at runtime. Provides `onImportSuccess` / `onImportFailed` events. The UI saves credentials between sessions. Failed requests or invalid JSON report failure and allow retrying while preserving the previous project.
 
 #### ArcweaveImporterUI
 
-UI panel for runtime import. Accessible via Esc key. Supports both web and local JSON import.
+UI panel for runtime import. Accessible via Esc key. Supports both web and local JSON import. Successful imports close an open panel after a real-time delay, including when game time is paused. A late response to an import does not restart UI coroutines on an already closed panel.
 
 #### GameManager
 
@@ -253,7 +267,7 @@ Singleton state machine: `Gameplay`, `Dialogue`, `Paused`. Controls cursor lock,
 | `dialogueEndComponentName` | Component name for dialogue end (optional, overrides tag) |
 | `dialogueAnimatorParam` | Animator bool parameter for dialogue state (default: `IsInDialogue`) |
 
-Detection priority: component name first, attribute tag fallback. Existing boards using tags continue to work.
+Detection priority: component name first, attribute tag fallback. An end tag's value must exactly match the configured tag. Standalone playback without a GameManager uses `dialogue_end` for both the component name and tag value. Explicit end markers take precedence over outgoing connections; unmarked elements also end when no valid outgoing path exists. Both cases show **Close** before returning to gameplay. Resuming the importer only changes a paused game; a delayed import completion cannot dismiss an active dialogue.
 
 #### PlayerController
 
@@ -326,13 +340,14 @@ public class MyHandler : ArcweaveElementComponentHandler
 | `arcweavePlayer` | Reference to ArcweavePlayer (auto-found if empty) |
 | `componentName` | Arcweave component to watch for (case-sensitive) |
 
-**Concrete example:** `SwordSwingHandler` -- detects the `Attack` component, reads `SwingSpeed` attribute, calls `PlayerController.EnableSwordSwing(speed)`. Once unlocked, the ability stays for the session.
+**Concrete example:** `SwordSwingHandler` watches its configured component name and calls `PlayerController.EnableSwordSwing()`. On initialization, Load or import, it derives the unlock from visits to any element carrying that component. A fresh import or reset relocks it. No particular element ID or character is required.
 
 | Inspector Field | Purpose |
 |----------------|---------|
-| `Component Name` | `Attack` (must match Arcweave component) |
+| `Component Name` | Must exactly match the Arcweave component (demo: `attack`) |
 | `Player Controller` | Reference to the player's PlayerController |
-| `Swing Speed Attribute` | Name of the speed attribute (default: `SwingSpeed`) |
+
+For new persistent Unity behavior, store the decision in an Arcweave variable or element visit and subscribe to `onProjectUpdated` to apply that state after initialization, Load, reset and import. Use `onElementEnter` for one-time reactions during play, and `onElementRestored` for presentation only. Arbitrary Unity fields, transforms, animation playback positions and audio playback positions are not saved automatically. This keeps the save format independent of particular NPCs, quests and Unity components.
 
 ---
 
@@ -343,6 +358,7 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 - Each Editor Play session starts with imported default values. Initializing another NPC during the same session keeps current gameplay values. Existing saves are left intact; no manual reset is needed to test from the beginning.
 - Build startup restores compatible global, board, and component variables and element visits, including earlier decisions tested with `visits()`. NPC interactions still start at their configured dialogue entry point.
 - Explicit loading resumes the saved element. If that element was deleted, loading falls back to the project's starting element while keeping compatible variables.
+- The demo saves automatically when a conversation is closed. Quitting before Close discards unsaved changes unless `Save()` was called explicitly. Player position and the currently interacting NPC are not part of the save.
 - A shared board ID identifies another export of the same project, so text edits, renames, and adding or removing some boards preserve progress. An export with no shared board IDs starts with defaults. Copies retaining the same exported IDs share this identity.
 - Manual web/local imports use the exported defaults and leave the saved slot intact. The automatic local import at build startup restores compatible progress. Saving a different project replaces the single slot.
 - Legacy `arcweave_save_variables` and `arcweave_save_currentElement` data can be restored when an element or variable ID still belongs to the current project; migration happens on the next actual save. Unrelated saves, unreadable data, and unsupported versions are left untouched until an actual save or reset.
@@ -353,6 +369,6 @@ Uses one `PlayerPrefs` slot, `arcweave_save_progress`, containing a versioned JS
 
 ## Compatibility
 
-- **Unity 6** (6000.0.x) -- primary development version
-- **Unity 2022 LTS** (2022.3.x) -- tested and working. Unity Hub automatically resolves package versions.
+- **Unity 6** -- current save, dialogue, import and build checks use **6000.0.39f1**, including Windows 64-bit builds.
+- **Unity 2022 LTS** (2022.3.x) -- previously listed as supported; the current changes have not been revalidated on this version.
 - **Arcweave plugin**: included in the project. Standalone plugin: https://github.com/Arcweave/arcweave-unity-plugin

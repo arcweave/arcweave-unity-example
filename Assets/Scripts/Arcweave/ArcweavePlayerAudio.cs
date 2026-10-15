@@ -21,7 +21,6 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// </summary>
     public bool debugMode = false;
 
-    private bool isInitialized = false;
     /// <summary>
     /// List of AudioSources used to play audio assets for the current element.
     /// </summary>
@@ -73,6 +72,7 @@ public class ArcweavePlayerAudio : MonoBehaviour
 
     void OnDisable()
     {
+        EndAudio(null);
         UnsubscribeFromEvents();
     }
 
@@ -81,14 +81,11 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// </summary>
     private void Initialize()
     {
-        if (isInitialized)
-            return;
-
-        isInitialized = SubscribeToEvents();
+        bool subscribed = SubscribeToEvents();
 
         if (debugMode)
         {
-            string status = isInitialized ? "success" : "failure";
+            string status = subscribed ? "success" : "failure";
             Debug.Log($"{this.GetType().Name} initialized with {status} ");
         }
     }
@@ -105,12 +102,14 @@ public class ArcweavePlayerAudio : MonoBehaviour
             UnsubscribeFromEvents();
 
             player.onElementEnter += OnElementEnter;
+            player.onProjectFinish += EndAudio;
+            player.onProjectUpdated += EndAudio;
+            hasSubscribed = true;
 
             ArcweaveAudioManager audioManager = ArcweaveAudioManager.Instance;
             if (audioManager != null)
             {
                 audioManager.SubscribeToAudioClipStop(StopAudioClip);
-                hasSubscribed = true;
             }
 
             if (debugMode)
@@ -158,6 +157,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
             return;
         }
 
+        StopAllCoroutines();
+        ClearAudioSources();
         currentElement = element;
 
         if (debugMode)
@@ -178,13 +179,12 @@ public class ArcweavePlayerAudio : MonoBehaviour
         }
 
         if (audioSources == null) audioSources = new List<AudioSource>();
-        ClearAudioSources();
-
         StartCoroutine(PlayAudioAssetsCoroutine(audioAssets));
     }
 
     private System.Collections.IEnumerator PlayAudioAssetsCoroutine(AudioAsset[] audioAssets)
     {
+        var element = currentElement;
         for (int i = 0; i < audioAssets.Length; i++)
         {
             AudioAsset assetInfo = audioAssets[i];
@@ -199,6 +199,9 @@ public class ArcweavePlayerAudio : MonoBehaviour
                 clip = loaded;
             }
 
+            if (currentElement != element || !isActiveAndEnabled || !dialogueTrigger.IsInDialogue())
+                yield break;
+
             if (clip == null)
             {
                 Debug.LogWarning($"ArcweavePlayerAudio: Couldn't fetch clip for asset with index {assetInfo.asset}" +
@@ -206,20 +209,20 @@ public class ArcweavePlayerAudio : MonoBehaviour
                 continue;
             }
 
-            if (i >= audioSources.Count)
-                audioSources.Add(gameObject.AddComponent<AudioSource>());
-
             if (assetInfo.mode == AudioAsset.Mode.Stop)
             {
                 if (ArcweaveAudioManager.Instance != null)
                     ArcweaveAudioManager.Instance.SignalAudioClipStop(clip);
             }
-            else if (TryConfigureAudioSource(i, assetInfo, clip))
+            else
             {
-                if (assetInfo.delay > 0)
-                    audioSources[i].PlayDelayed(assetInfo.delay);
-                else
-                    audioSources[i].Play();
+                int index = audioSources.Count;
+                audioSources.Add(gameObject.AddComponent<AudioSource>());
+                if (TryConfigureAudioSource(index, assetInfo, clip))
+                {
+                    if (assetInfo.delay > 0) audioSources[index].PlayDelayed(assetInfo.delay);
+                    else audioSources[index].Play();
+                }
             }
         }
     }
@@ -259,19 +262,27 @@ public class ArcweavePlayerAudio : MonoBehaviour
     /// <summary>
     /// Stops and resets all AudioSources in the list.
     /// </summary>
-    private void ClearAudioSources()
+    private void EndAudio(Arcweave.Project.Project project)
+    {
+        currentElement = null;
+        StopAllCoroutines();
+        ClearAudioSources(includeLoops: true);
+    }
+
+    private void ClearAudioSources(bool includeLoops = false)
     {
         if (audioSources == null) return;
 
         foreach (var source in audioSources)
         {
-            if (source != null && !source.loop)
+            if (source != null && (includeLoops || !source.loop))
             {
+                source.Stop();
                 Destroy(source);
             }
         }
 
-        audioSources.Clear();
+        audioSources.RemoveAll(source => source == null || includeLoops || !source.loop);
     }
 
     private void UnsubscribeFromEvents()
@@ -279,6 +290,8 @@ public class ArcweavePlayerAudio : MonoBehaviour
         if (player != null)
         {
             player.onElementEnter -= OnElementEnter;
+            player.onProjectFinish -= EndAudio;
+            player.onProjectUpdated -= EndAudio;
 
             if (debugMode)
             {

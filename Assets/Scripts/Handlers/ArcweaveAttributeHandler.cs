@@ -27,6 +27,7 @@ public abstract class ArcweaveAttributeHandler : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish += OnProjectFinish;
+            arcweavePlayer.onProjectUpdated += OnProjectFinish;
         }
     }
 
@@ -125,10 +126,11 @@ public abstract class ArcweaveAttributeHandler : MonoBehaviour
         if (arcweavePlayer != null)
         {
             arcweavePlayer.onProjectFinish -= OnProjectFinish;
+            arcweavePlayer.onProjectUpdated -= OnProjectFinish;
         }
         if (arcweaveImporter != null)
         {
             arcweaveImporter.onImportSuccess.RemoveListener(OnImportSuccess);
         }
     }
-} 
+}

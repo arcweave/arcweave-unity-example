@@ -82,13 +82,9 @@ public class DialogueTrigger : MonoBehaviour
             }
         }
         
-        // Set up Arcweave event subscriptions
+        // Initialize the shared narrative state.
         if (arcweavePlayer != null)
         {
-            // Unsubscribe first to prevent duplicate subscriptions
-            arcweavePlayer.onProjectFinish -= OnProjectFinish;
-            arcweavePlayer.onProjectFinish += OnProjectFinish;
-            
             // Make sure the Arcweave project is initialized
             arcweavePlayer.EnsureInitialized();
         }
@@ -110,10 +106,11 @@ public class DialogueTrigger : MonoBehaviour
     
     void OnEnable()
     {
-        // Re-initialize if needed
-        if (!isInitialized)
+        Initialize();
+        if (arcweavePlayer != null)
         {
-            Initialize();
+            arcweavePlayer.onProjectFinish -= OnProjectFinish;
+            arcweavePlayer.onProjectFinish += OnProjectFinish;
         }
     }
     
